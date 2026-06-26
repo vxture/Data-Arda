@@ -58,6 +58,7 @@ services:
       RP_SESSION_COOKIE_DOMAIN: "${RP_SESSION_COOKIE_DOMAIN:-}"
       # -- App config --------------------------------------------------------
       DEFAULT_LANDING: "${DEFAULT_LANDING:-/data-assets/overview}"
+      MOCK_STATE: "${MOCK_STATE:-subscribed}"
       MOCK_TIER: "${MOCK_TIER:-pro}"
     networks:
       - arda-net
