@@ -138,8 +138,8 @@ log_ok "$ROOT_DIR owned by $ADMIN_USER (etc + deploy + runtime + data + backup)"
 # -- Firewall ------------------------------------------------------------------
 log_step "Configuring firewall..."
 
-# vx-worker-02 is private compute with no public IP. Only SSH is opened on the
-# public surface; arda-app's published port is reached by the vx-worker-01 edge
+# the deploy host is private compute with no public IP. Only SSH is opened on the
+# public surface; arda-app's published port is reached by the shared public edge
 # over tailscale, so it must NOT be opened to the public interface. If UFW is
 # used to filter the tailscale interface, allow APP_PUBLISH_PORT there only.
 if command -v ufw &>/dev/null; then
@@ -160,7 +160,7 @@ log_info "No git clone is used. CI rsyncs the deploy subset (deploy/, configs/,"
 log_info "docker-compose.yml) to $ROOT_DIR/deploy on the next release, then runs"
 log_info "deploy.sh all over SSH. Before that first release:"
 log_info "  create $ROOT_DIR/etc/.env with real secrets (copy from .env.example)"
-log_info "  install the edge vhost from configs/edge/ on vx-worker-01 (see its README)"
+log_info "  install the edge vhost from configs/edge/ on the edge host (see its README)"
 echo ""
 log_info "After confirming $ADMIN_USER SSH login works, optionally harden SSH:"
 log_info "  sed -i 's/^#\\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl reload sshd"

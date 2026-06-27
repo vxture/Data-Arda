@@ -22,7 +22,7 @@ import sys
 
 # Image names, kept in sync with the release.yml build matrix and
 # docker-compose.yml. arda owns exactly one image (TLS/proxy moved to the shared
-# vx-worker-01 edge, so there is no longer an arda-nginx image).
+# public edge, so there is no longer an arda-nginx image).
 ALL_IMAGES = (
     "arda-app",
 )
@@ -44,7 +44,7 @@ _SKIP_PREFIXES = ("docs/", ".claude/", ".github/", "scripts/")
 
 # Prefixes / exact paths that require a deploy but rebuild no image. configs/ is
 # now just the edge vhost source artifacts (configs/edge/), which an operator
-# installs on vx-worker-01; deploy/ and docker-compose.yml are re-read on the
+# installs on the edge host; deploy/ and docker-compose.yml are re-read on the
 # server at deploy time. None of these rebuild a runtime image.
 _DEPLOY_PREFIXES = ("configs/", "deploy/")
 _DEPLOY_FILES = frozenset({"docker-compose.yml"})

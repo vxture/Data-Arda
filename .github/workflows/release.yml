@@ -170,7 +170,7 @@ jobs:
           test -n "$TAILSCALE_OAUTH_CLIENT_ID"
           test -n "$TAILSCALE_OAUTH_CLIENT_SECRET"
 
-      # Join the tailnet so the runner can reach vx-worker-02 (private compute,
+      # Join the tailnet so the runner can reach the deploy host (private compute,
       # no public IP). ephemeral=true auto-removes the node after the job ends.
       # The ping option waits up to 3 minutes for a direct/relayed connection
       # to the deploy host BEFORE the SSH step starts -- fast failure instead of

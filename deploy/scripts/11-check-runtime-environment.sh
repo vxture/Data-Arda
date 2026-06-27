@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Check all prerequisites before deployment.
 #
-# Two-host topology: this stack is plain HTTP on vx-worker-02's tailnet. TLS and the
-# public domain live on the shared vx-worker-01 edge, so there are no cert, nginx,
+# Two-host topology: this stack is plain HTTP on the deploy host's tailnet. TLS and the
+# public domain live on the shared public edge, so there are no cert, nginx,
 # or public-DNS checks here - only the app + redis runtime contract.
 set -euo pipefail
 
@@ -82,7 +82,7 @@ log_step "Checking environment value formats..."
 
 require_int_range RP_SESSION_TTL 60 31536000
 
-# Tailnet publish port: the host port arda-app binds for the vx-worker-01 edge.
+# Tailnet publish port: the host port arda-app binds for the public edge.
 require_int_range APP_PUBLISH_PORT 1 65535
 
 # -- OIDC RP (required: arda login depends on it) ------------------------------
@@ -152,7 +152,7 @@ else
 fi
 
 # -- Tailnet publish port availability -----------------------------------------
-# vx-worker-02 has no public IP; arda-app's published port is reachable only on the
+# the deploy host has no public IP; arda-app's published port is reachable only on the
 # tailscale/LAN interface. A port already in use is fine when it belongs to this
 # stack's own app container (a re-deploy), otherwise it is a conflict.
 log_step "Checking tailnet publish port availability..."
