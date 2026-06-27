@@ -8,13 +8,13 @@ accounts.vxture.com that gates users by subscription tier (free/pro/team/
 enterprise) and lands them on a configurable default page. It ships as one owned
 image (`arda-app`) into two environments (beta + prod).
 
-Topology is two-host. The shared vxture public edge (worker-01) terminates TLS
+Topology is two-host. The shared vxture public edge (vx-worker-01) terminates TLS
 with the wildcard `*.vxture.com` cert and reverse-proxies over tailscale to
-worker-02, which is private compute (tailnet-only, no public IP) running
+vx-worker-02, which is private compute (tailnet-only, no public IP) running
 `arda-app` + `arda-redis` only. arda does NOT own the edge; it contributes the
 vhost source artifacts in `configs/edge/*.conf`, which an operator installs into
-the vxture repo's `deploy/worker-01/nginx/sites-enabled/`. There is no on-host
-TLS or nginx in this repo - the app is published on worker-02's tailnet
+the vxture project repository. There is no on-host
+TLS or nginx in this repo - the app is published on vx-worker-02's tailnet
 (`APP_PUBLISH_PORT`, prod 3230 / beta 3231) and the edge is the only TLS hop.
 
 ## Branch model
@@ -85,10 +85,10 @@ re-fires the downstream release/deploy chain.
 ```
 feature -> PR to develop -> ci (quality-gate) -> squash-merge to develop
   -> release on develop: detect -> docker-build (arda-app)
-       -> deploy beta stack (/srv/md1/arda-beta on worker-02)
+       -> deploy beta stack (/srv/md1/arda-beta on vx-worker-02)
   -> promote.yml (manual, fast-forward) -> main
        -> release on main: detect -> docker-build (retag-by-digest if unchanged)
-       -> deploy prod stack (/srv/md0/arda on worker-02)
+       -> deploy prod stack (/srv/md0/arda on vx-worker-02)
 ```
 
 Workflows: `.github/workflows/{ci,promote,release}.yml`. `docker-build` and
@@ -133,8 +133,8 @@ them. Raw ad-hoc styling that bypasses the DS fails the gate.
 
 Deploy contracts hold the one-image, two-stack reality: the build emits exactly
 `arda-app`; prod resolves to `/srv/md0/arda` and beta to `/srv/md1/arda-beta` on
-worker-02; the two stacks must not share runtime state. TLS and the public
-domain live on the shared worker-01 edge (wildcard `*.vxture.com`); arda only
+vx-worker-02; the two stacks must not share runtime state. TLS and the public
+domain live on the shared vx-worker-01 edge (wildcard `*.vxture.com`); arda only
 contributes the vhost source artifacts in `configs/edge/*.conf` and runs no
 on-host TLS or nginx.
 
@@ -147,6 +147,6 @@ on-host TLS or nginx.
   take effect one promotion late.
 - A push to `develop` deploys beta automatically. Do not assume develop is a
   staging-only branch; treat every green develop push as a live beta deploy.
-- worker-02 shares a tailscale segment with worker-01; deploys target worker-02
+- vx-worker-02 shares a tailscale segment with vx-worker-01; deploys target vx-worker-02
   by its tailscale IP. Prod and beta are separate stacks on the same host -
   never point one stack's `.env` or data dir at the other.

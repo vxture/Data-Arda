@@ -3,7 +3,7 @@
 # idempotent where possible.
 #
 # Two-host topology: environment -> directories -> start -> verify. No cert or
-# nginx-config step; TLS lives on the shared worker-01 edge.
+# nginx-config step; TLS lives on the shared vx-worker-01 edge.
 #
 # Options:
 #   --skip-verify    Skip the verification step (useful on re-deploys)
@@ -32,7 +32,7 @@ fi
 log_banner "Arda - Full Deployment"
 log_info "Node:    $NODE_NAME"
 log_info "Project: $PROJECT_NAME"
-log_info "Domain:  $APEX_DOMAIN (fronted by the worker-01 edge)"
+log_info "Domain:  $APEX_DOMAIN (fronted by the vx-worker-01 edge)"
 log_info "Publish: 127.0.0.1:$APP_PUBLISH_PORT (tailnet)"
 log_info "Data:    $DATA_DIR"
 log_info "Backup:  $BACKUP_DIR"
@@ -120,7 +120,7 @@ echo "  App (public, via edge):  https://$APEX_DOMAIN"
 echo "  App (tailnet, direct):   http://127.0.0.1:$APP_PUBLISH_PORT/api/health"
 echo ""
 echo "  Next steps:"
-echo "  1. Confirm the worker-01 edge vhost is installed (configs/edge/)."
+echo "  1. Confirm the vx-worker-01 edge vhost is installed (configs/edge/)."
 echo "  2. Confirm OIDC login works: open https://$APEX_DOMAIN/auth/login"
 echo "  3. (Optional) set up external uptime monitoring"
 echo ""
