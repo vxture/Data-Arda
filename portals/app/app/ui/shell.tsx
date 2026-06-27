@@ -58,7 +58,7 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 50);
     update();
-    window.addEventListener("scroll", update);
+    window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
 
