@@ -1,0 +1,197 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      build_images:
+        description: JSON array of images requiring a new build
+        required: false
+        type: string
+        default: '[]'
+      pass_sha:
+        description: Commit SHA to build and tag
+        required: true
+        type: string
+    secrets:
+      NODE_AUTH_TOKEN:
+        required: true
+      ALIYUN_ACR_REGISTRY:
+        required: true
+      ALIYUN_ACR_NAMESPACE:
+        required: true
+      ALIYUN_ACR_USERNAME:
+        required: true
+      ALIYUN_ACR_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker-build:
+    name: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      PASSED_SHA: ${{ inputs.pass_sha }}
+      GHCR_NAMESPACE: vxture
+      ACR_REGISTRY: ${{ secrets.ALIYUN_ACR_REGISTRY }}
+      ACR_NAMESPACE: ${{ secrets.ALIYUN_ACR_NAMESPACE }}
+      VXTURE_NPM_REGISTRY: ${{ vars.VXTURE_NPM_REGISTRY }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: arda-app
+            context: ./portals
+            dockerfile: ./portals/app/Dockerfile
+
+    steps:
+      - name: Validate registry secrets
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
+          ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$PASSED_SHA"
+          test -n "$ACR_REGISTRY"
+          test -n "$ACR_NAMESPACE"
+          test -n "$ALIYUN_ACR_USERNAME"
+          test -n "$ALIYUN_ACR_PASSWORD"
+          test -n "$NODE_AUTH_TOKEN"
+
+      - name: Checkout passed revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.pass_sha }}
+
+      - name: Compute image metadata
+        id: meta
+        shell: bash
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          short_sha="${PASSED_SHA::7}"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          # sha-<short> is the immutable per-commit deploy tag (identical on
+          # develop and main after a fast-forward promotion). The branch tag is
+          # the moving pointer for humans/rollback.
+          echo "image_tag=sha-$short_sha" >> "$GITHUB_OUTPUT"
+          echo "branch_tag=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      # Buildx setup intermittently fails pulling the buildkit image (infra
+      # flake, not code). Tolerate the first failure and retry once before the
+      # job gives up, so a transient flake does not fail the whole release.
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+        continue-on-error: true
+
+      - name: Set up Docker Buildx (retry)
+        if: ${{ steps.buildx.outcome == 'failure' }}
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Aliyun ACR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.ACR_REGISTRY }}
+          username: ${{ secrets.ALIYUN_ACR_USERNAME }}
+          password: ${{ secrets.ALIYUN_ACR_PASSWORD }}
+
+      - name: Decide build vs retag
+        id: decide
+        shell: bash
+        env:
+          BUILD_IMAGES: ${{ inputs.build_images }}
+          IMAGE: ${{ matrix.image }}
+          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+          ghcr_repo="ghcr.io/${GHCR_NAMESPACE}/${IMAGE}"
+
+          if printf '%s' "$BUILD_IMAGES" | jq -e --arg i "$IMAGE" 'any(. == $i)' >/dev/null; then
+            changed=true
+          else
+            changed=false
+          fi
+
+          # Build the SAME image only once across develop and main. The deploy
+          # tag is commit-addressed, so after a fast-forward promotion main sees
+          # the exact sha-<short> tag the develop release already published. If
+          # it is already present, retag-by-digest instead of rebuilding.
+          if docker buildx imagetools inspect "${ghcr_repo}:${IMAGE_TAG}" >/dev/null 2>&1; then
+            exists=true
+          else
+            exists=false
+          fi
+
+          if [ "$changed" = true ] && [ "$exists" = false ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "decide: image=$IMAGE changed=$changed exists=$exists"
+
+      - name: Build and push image
+        if: ${{ steps.decide.outputs.build == 'true' }}
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          no-cache: true
+          # GITHUB_TOKEN lacks read_package permission for @vxture/* packages
+          # (they live under a different repo). Use NODE_AUTH_TOKEN PAT instead.
+          # If Docker build fails with 401, the PAT has likely expired and
+          # needs to be renewed with read:packages scope.
+          build-args: |
+            VXTURE_NPM_REGISTRY=${{ env.VXTURE_NPM_REGISTRY }}
+            NODE_AUTH_TOKEN=${{ secrets.NODE_AUTH_TOKEN }}
+          tags: |
+            ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.image_tag }}
+            ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.branch_tag }}
+            ${{ env.ACR_REGISTRY }}/${{ env.ACR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.image_tag }}
+            ${{ env.ACR_REGISTRY }}/${{ env.ACR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.branch_tag }}
+
+      - name: Retag unchanged image by digest
+        if: ${{ steps.decide.outputs.build == 'false' }}
+        shell: bash
+        env:
+          IMAGE: ${{ matrix.image }}
+          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+          BRANCH_TAG: ${{ steps.meta.outputs.branch_tag }}
+        run: |
+          set -euo pipefail
+          # The image's source did not change this revision (or the same commit
+          # was already built on develop), so do not rebuild (a rebuild would
+          # mint a new digest and force a pointless container recreate on
+          # deploy). Re-point the immutable sha tag and the moving branch tag at
+          # the existing digest; the digest is preserved, so the deploy keeps the
+          # running container.
+          for repo in \
+            "ghcr.io/${GHCR_NAMESPACE}/${IMAGE}" \
+            "${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE}"; do
+            if docker buildx imagetools inspect "${repo}:${IMAGE_TAG}" >/dev/null 2>&1; then
+              source_ref="${repo}:${IMAGE_TAG}"
+            else
+              source_ref="${repo}:${BRANCH_TAG}"
+            fi
+            echo "Retagging ${source_ref} -> ${repo}:${IMAGE_TAG}, ${repo}:${BRANCH_TAG}"
+            docker buildx imagetools create \
+              -t "${repo}:${IMAGE_TAG}" \
+              -t "${repo}:${BRANCH_TAG}" \
+              "${source_ref}"
+          done

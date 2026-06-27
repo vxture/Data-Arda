@@ -54,7 +54,7 @@ jobs:
       - name: Validate promotion request
         shell: bash
         run: |
-          set -euxo pipefail
+          set -euo pipefail
 
           test "$TARGET" = "main"
           test "$RELEASE_CONFIRMED" = "true"

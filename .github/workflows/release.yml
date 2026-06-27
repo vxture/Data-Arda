@@ -109,206 +109,31 @@ jobs:
           echo "environment=$environment" >> "$GITHUB_OUTPUT"
           echo "scope: env=$environment deployable=$deployable reason=$reason build_images=$build_json ($base...$HEAD_SHA)"
 
-  build:
+  call-build:
     name: docker-build
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    uses: ./.github/workflows/build.yml
     needs: detect
     if: ${{ needs.detect.outputs.deployable == 'true' }}
-    permissions:
-      contents: read
-      packages: write
-
-    env:
-      PASSED_SHA: ${{ github.sha }}
-      GHCR_NAMESPACE: vxture
-      ACR_REGISTRY: ${{ secrets.ALIYUN_ACR_REGISTRY }}
-      ACR_NAMESPACE: ${{ secrets.ALIYUN_ACR_NAMESPACE }}
-      VXTURE_NPM_REGISTRY: ${{ vars.VXTURE_NPM_REGISTRY }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: arda-app
-            context: ./portals
-            dockerfile: ./portals/app/Dockerfile
-
-    steps:
-      - name: Validate registry secrets
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-          ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
-          ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
-        run: |
-          set -euo pipefail
-          test -n "$PASSED_SHA"
-          test -n "$ACR_REGISTRY"
-          test -n "$ACR_NAMESPACE"
-          test -n "$ALIYUN_ACR_USERNAME"
-          test -n "$ALIYUN_ACR_PASSWORD"
-          test -n "$NODE_AUTH_TOKEN"
-
-      - name: Checkout passed revision
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Compute image metadata
-        id: meta
-        shell: bash
-        env:
-          BRANCH: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          short_sha="${PASSED_SHA::7}"
-          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
-          # sha-<short> is the immutable per-commit deploy tag (identical on
-          # develop and main after a fast-forward promotion). The branch tag is
-          # the moving pointer for humans/rollback.
-          echo "image_tag=sha-$short_sha" >> "$GITHUB_OUTPUT"
-          echo "branch_tag=$BRANCH" >> "$GITHUB_OUTPUT"
-
-      # Buildx setup intermittently fails pulling the buildkit image (infra
-      # flake, not code). Tolerate the first failure and retry once before the
-      # job gives up, so a transient flake does not fail the whole release.
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v4
-        continue-on-error: true
-
-      - name: Set up Docker Buildx (retry)
-        if: ${{ steps.buildx.outcome == 'failure' }}
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to Aliyun ACR
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.ACR_REGISTRY }}
-          username: ${{ secrets.ALIYUN_ACR_USERNAME }}
-          password: ${{ secrets.ALIYUN_ACR_PASSWORD }}
-
-      - name: Decide build vs retag
-        id: decide
-        shell: bash
-        env:
-          BUILD_IMAGES: ${{ needs.detect.outputs.build_images }}
-          IMAGE: ${{ matrix.image }}
-          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
-        run: |
-          set -euo pipefail
-          ghcr_repo="ghcr.io/${GHCR_NAMESPACE}/${IMAGE}"
-
-          if printf '%s' "$BUILD_IMAGES" | jq -e --arg i "$IMAGE" 'any(. == $i)' >/dev/null; then
-            changed=true
-          else
-            changed=false
-          fi
-
-          # Build the SAME image only once across develop and main. The deploy
-          # tag is commit-addressed, so after a fast-forward promotion main sees
-          # the exact sha-<short> tag the develop release already published. If
-          # it is already present, retag-by-digest instead of rebuilding.
-          if docker buildx imagetools inspect "${ghcr_repo}:${IMAGE_TAG}" >/dev/null 2>&1; then
-            exists=true
-          else
-            exists=false
-          fi
-
-          if [ "$changed" = true ] && [ "$exists" = false ]; then
-            echo "build=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "build=false" >> "$GITHUB_OUTPUT"
-          fi
-          echo "decide: image=$IMAGE changed=$changed exists=$exists"
-
-      - name: Debug npm install
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Temporarily test npm install directly to capture error output
-          workdir=$(mktemp -d)
-          cd "$workdir"
-          printf '@vxture:registry=%s\n' "$VXTURE_NPM_REGISTRY" > .npmrc
-          printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" >> .npmrc
-          cat .npmrc
-          # Test token by trying to access the registry
-          echo "--- Testing registry access ---"
-          curl -v -H "Authorization: token $NODE_AUTH_TOKEN" \
-            "https://npm.pkg.github.com/@vxture%2fdesign-system" 2>&1 | head -30 || true
-          echo "--- Test complete ---"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-          VXTURE_NPM_REGISTRY: ${{ env.VXTURE_NPM_REGISTRY }}
-
-      - name: Build and push image
-        if: ${{ steps.decide.outputs.build == 'true' }}
-        uses: docker/build-push-action@v7
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.dockerfile }}
-          push: true
-          no-cache: true
-          # GITHUB_TOKEN lacks read_package permission for @vxture/* packages
-          # (they live under a different repo). Use NODE_AUTH_TOKEN PAT instead.
-          # If Docker build fails with 401, the PAT has likely expired and
-          # needs to be renewed with read:packages scope.
-          build-args: |
-            VXTURE_NPM_REGISTRY=${{ env.VXTURE_NPM_REGISTRY }}
-            NODE_AUTH_TOKEN=${{ secrets.NODE_AUTH_TOKEN }}
-          tags: |
-            ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.image_tag }}
-            ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.branch_tag }}
-            ${{ env.ACR_REGISTRY }}/${{ env.ACR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.image_tag }}
-            ${{ env.ACR_REGISTRY }}/${{ env.ACR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.branch_tag }}
-
-      - name: Retag unchanged image by digest
-        if: ${{ steps.decide.outputs.build == 'false' }}
-        shell: bash
-        env:
-          IMAGE: ${{ matrix.image }}
-          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
-          BRANCH_TAG: ${{ steps.meta.outputs.branch_tag }}
-        run: |
-          set -euo pipefail
-          # The image's source did not change this revision (or the same commit
-          # was already built on develop), so do not rebuild (a rebuild would
-          # mint a new digest and force a pointless container recreate on
-          # deploy). Re-point the immutable sha tag and the moving branch tag at
-          # the existing digest; the digest is preserved, so the deploy keeps the
-          # running container.
-          for repo in \
-            "ghcr.io/${GHCR_NAMESPACE}/${IMAGE}" \
-            "${ACR_REGISTRY}/${ACR_NAMESPACE}/${IMAGE}"; do
-            if docker buildx imagetools inspect "${repo}:${IMAGE_TAG}" >/dev/null 2>&1; then
-              source_ref="${repo}:${IMAGE_TAG}"
-            else
-              source_ref="${repo}:${BRANCH_TAG}"
-            fi
-            echo "Retagging ${source_ref} -> ${repo}:${IMAGE_TAG}, ${repo}:${BRANCH_TAG}"
-            docker buildx imagetools create \
-              -t "${repo}:${IMAGE_TAG}" \
-              -t "${repo}:${BRANCH_TAG}" \
-              "${source_ref}"
-          done
+    with:
+      build_images: ${{ needs.detect.outputs.build_images }}
+      pass_sha: ${{ github.sha }}
+    secrets:
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+      ALIYUN_ACR_REGISTRY: ${{ secrets.ALIYUN_ACR_REGISTRY }}
+      ALIYUN_ACR_NAMESPACE: ${{ secrets.ALIYUN_ACR_NAMESPACE }}
+      ALIYUN_ACR_USERNAME: ${{ secrets.ALIYUN_ACR_USERNAME }}
+      ALIYUN_ACR_PASSWORD: ${{ secrets.ALIYUN_ACR_PASSWORD }}
 
   deploy:
     name: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [detect, build]
+    needs: [detect, call-build]
     if: ${{ needs.detect.outputs.deployable == 'true' }}
     permissions:
       contents: read
       packages: read
+      id-token: write  # Allows requesting an OIDC JWT token for cloud provider auth
     # Branch-routed environment: develop -> beta, main -> production. The
     # environment supplies its own DEPLOY_HOST/DEPLOY_USER/DEPLOY_SSH_KEY/
     # DEPLOY_KNOWN_HOSTS/DEPLOY_REPO_DIR, so the same job deploys to the right
@@ -332,7 +157,8 @@ jobs:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           ALIYUN_ACR_REGISTRY: ${{ secrets.ALIYUN_ACR_REGISTRY }}
           ALIYUN_ACR_NAMESPACE: ${{ secrets.ALIYUN_ACR_NAMESPACE }}
-          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+          TAILSCALE_OAUTH_CLIENT_ID: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          TAILSCALE_OAUTH_CLIENT_SECRET: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
         run: |
           set -euo pipefail
           test -n "$DEPLOY_HOST"
@@ -340,15 +166,21 @@ jobs:
           test -n "$DEPLOY_SSH_KEY"
           test -n "$ALIYUN_ACR_REGISTRY"
           test -n "$ALIYUN_ACR_NAMESPACE"
-          test -n "$TAILSCALE_AUTHKEY"
+          test -n "$TAILSCALE_OAUTH_CLIENT_ID"
+          test -n "$TAILSCALE_OAUTH_CLIENT_SECRET"
 
       # Join the tailnet so the runner can reach worker-02 (private compute,
       # no public IP). ephemeral=true auto-removes the node after the job ends.
+      # The ping option waits up to 3 minutes for a direct/relayed connection
+      # to the deploy host BEFORE the SSH step starts -- fast failure instead of
+      # a silent SSH timeout.
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
           args: --accept-routes --hostname arda-ci-${{ github.run_id }}
+          ping: ${{ secrets.DEPLOY_HOST }}
 
       - name: Prepare SSH
         shell: bash
