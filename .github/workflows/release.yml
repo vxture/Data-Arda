@@ -124,7 +124,7 @@ jobs:
       GHCR_NAMESPACE: vxture
       ACR_REGISTRY: ${{ secrets.ALIYUN_ACR_REGISTRY }}
       ACR_NAMESPACE: ${{ secrets.ALIYUN_ACR_NAMESPACE }}
-      VXTURE_NPM_REGISTRY: https://npm.pkg.github.com
+      VXTURE_NPM_REGISTRY: ${{ vars.VXTURE_NPM_REGISTRY }}
 
     strategy:
       fail-fast: false
