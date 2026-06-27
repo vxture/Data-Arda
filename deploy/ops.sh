@@ -7,7 +7,7 @@
 #   bash deploy/ops.sh <command> [args]
 #
 # Two-host topology: there is no on-host nginx/TLS to reload here. The shared
-# worker-01 edge owns TLS and config reloads.
+# vx-worker-01 edge owns TLS and config reloads.
 #
 # Commands:
 #   status                         Show container status
@@ -81,7 +81,7 @@ case "$CMD" in
     ;;
 
   reload)
-    # No nginx on this host (TLS/proxy is the worker-01 edge). The closest
+    # No nginx on this host (TLS/proxy is the vx-worker-01 edge). The closest
     # equivalent is to restart the app container to pick up a new config/env.
     cd "$REPO_DIR"
     log_step "Restarting arda-app..."

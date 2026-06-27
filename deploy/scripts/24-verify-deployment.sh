@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Post-deployment verification suite. All checks are read-only.
 #
-# Two-host topology: this stack is plain HTTP on worker-02's tailnet, so the app
+# Two-host topology: this stack is plain HTTP on vx-worker-02's tailnet, so the app
 # is verified directly on its published port. TLS / the public domain / the
-# OIDC login surface are fronted by the shared worker-01 edge and are verified
+# OIDC login surface are fronted by the shared vx-worker-01 edge and are verified
 # there, not here.
 set -euo pipefail
 
@@ -51,7 +51,7 @@ for c in "${CONTAINERS[@]}"; do
 done
 
 # -- App health (plain HTTP on the tailnet publish port) -----------------------
-# TLS is terminated at the edge; on worker-02 the app speaks plain HTTP. Probe
+# TLS is terminated at the edge; on vx-worker-02 the app speaks plain HTTP. Probe
 # the published port on loopback so this works without any tailscale routing.
 log_step "App health endpoint..."
 HEALTH_URL="http://127.0.0.1:${APP_PUBLISH_PORT}/api/health"

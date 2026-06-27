@@ -8,8 +8,8 @@
 # they run from (PROJECT_ROOT = lib/../.. = /srv/md0/arda or /srv/md1/arda-beta) and the
 # .env found at $PROJECT_ROOT/etc/.env.
 #
-# Two-host topology: this stack is app + redis only, plain HTTP on worker-02's
-# tailnet. TLS / the public domain live on the shared worker-01 edge, so there
+# Two-host topology: this stack is app + redis only, plain HTTP on vx-worker-02's
+# tailnet. TLS / the public domain live on the shared vx-worker-01 edge, so there
 # is no certificate or nginx-config step in this lifecycle.
 #
 # Commands:

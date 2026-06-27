@@ -1,12 +1,12 @@
-# Arda - two-service stack (app + redis) behind the shared worker-01 edge.
+# Arda - two-service stack (app + redis) behind the shared vx-worker-01 edge.
 #
-# worker-02 is private compute (Tailscale-only, no public IP). This stack runs
+# vx-worker-02 is private compute (Tailscale-only, no public IP). This stack runs
 # arda-app + arda-redis ONLY. There is NO per-service nginx and NO TLS here:
-# the shared vxture public edge (worker-01) terminates TLS with the wildcard
+# the shared vxture public edge (vx-worker-01) terminates TLS with the wildcard
 # *.vxture.com cert and reverse-proxies to arda-app's published port over
 # tailscale. See configs/edge/ for the vhost arda contributes to that edge.
 #
-# The same file deploys two independent stacks on worker-02 by pointing at a
+# The same file deploys two independent stacks on vx-worker-02 by pointing at a
 # different env file / root. PROJECT_NAME drives both the compose project name
 # and the container_name prefix, so prod (arda-) and beta (arda-beta-) never
 # collide:
@@ -34,8 +34,8 @@ services:
     restart: always
     depends_on:
       - arda-redis
-    # Publish the app port so the worker-01 edge can reach it over tailscale.
-    # worker-02 has NO public IP, so this bind is reachable only via the
+    # Publish the app port so the vx-worker-01 edge can reach it over tailscale.
+    # vx-worker-02 has NO public IP, so this bind is reachable only via the
     # tailscale/LAN interface; the host firewall must allow ingress on the
     # tailscale interface ONLY (never the public interface). prod uses 3230,
     # beta uses 3231 (APP_PUBLISH_PORT), so both stacks coexist on one host.
