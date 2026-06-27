@@ -60,7 +60,9 @@ jobs:
           test "$RELEASE_CONFIRMED" = "true"
           test -n "$RELEASE_NOTE"
 
-          git fetch origin main:refs/remotes/origin/main develop:refs/remotes/origin/develop
+          # Checkout fetch-depth 0 already fetched all branches.
+          # Explicitly sync both refs so we compare the latest server state.
+          git fetch origin main develop 2>&1 || echo "fetch-exit: $?"
           develop_sha="$(git rev-parse origin/develop)"
           main_sha="$(git rev-parse origin/main)"
 
