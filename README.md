@@ -6,7 +6,7 @@ surfaces. It is shell-only for now - the app authenticates users, gates them by
 subscription tier, and lands them on a configurable default page; the capability
 surfaces are built out behind that shell over time.
 
-**Stack:** Next.js (`arda-app`) / Redis, behind the shared vx-worker-01 edge
+**Stack:** Next.js (`arda-app`) / Redis, behind the shared public edge
 
 **Repo:** `github.com/vxture/Data-Arda`
 
@@ -27,8 +27,8 @@ surfaces are built out behind that shell over time.
 
 ## Architecture
 
-Two-host topology. The shared vxture public edge (vx-worker-01) terminates TLS with
-the wildcard `*.vxture.com` cert and reverse-proxies over tailscale to vx-worker-02,
+Two-host topology. The shared public edge terminates TLS with
+the wildcard `*.vxture.com` cert and reverse-proxies over tailscale to ARDA_DEPLOY_HOST,
 which is private compute (tailnet-only, no public IP) running `arda-app` +
 `arda-redis` only. There is no on-host TLS or nginx in this repo.
 
@@ -36,10 +36,10 @@ which is private compute (tailnet-only, no public IP) running `arda-app` +
 Browser
    |  https (:443, *.vxture.com wildcard cert)
    v
-vx-worker-01  (SHARED vxture public edge: nginx, TLS termination)
-   |  http over tailscale (WireGuard-encrypted) -> vx-worker-02:APP_PUBLISH_PORT
+EDGE HOST  (SHARED public edge: nginx, TLS termination)
+   |  http over tailscale (WireGuard-encrypted) -> ARDA_DEPLOY_HOST:APP_PUBLISH_PORT
    v
-vx-worker-02  (PRIVATE compute, tailnet-only, no public IP)
+ARDA_DEPLOY_HOST  (PRIVATE compute, tailnet-only, no public IP)
    |
 arda-app (Next.js, published on APP_PUBLISH_PORT)
    |- /            -> Next.js pages
@@ -51,7 +51,7 @@ arda-app (Next.js, published on APP_PUBLISH_PORT)
 ```
 
 arda contributes its public vhost as source artifacts in `configs/edge/*.conf`;
-an operator installs them on the vx-worker-01 edge. There is no separate
+an operator installs them on the edge host. There is no separate
 console/admin app and no VPN stack - Arda is one app, one owned image
 (`arda-app`), two environments.
 
@@ -59,15 +59,15 @@ console/admin app and no VPN stack - Arda is one app, one owned image
 
 ## Domains and environments
 
-| Environment | Domain | Stack path (vx-worker-02) | Tailnet port (`APP_PUBLISH_PORT`) |
+| Environment | Domain | Stack path (ARDA_DEPLOY_HOST) | Tailnet port (`APP_PUBLISH_PORT`) |
 |-------------|--------------------------|------------------------|-----------------------------------|
 | prod | `arda.vxture.com` | `/srv/md0/arda` | 3230 |
 | beta | `beta-arda.vxture.com` | `/srv/md1/arda-beta` | 3231 |
 
-Both are direct subdomains of `vxture.com`, served by the vx-worker-01 edge with
+Both are direct subdomains of `vxture.com`, served by the public edge with
 the wildcard `*.vxture.com` cert. Each stack publishes `arda-app` on its own
 tailnet port (`APP_PUBLISH_PORT`); the edge upstream targets
-`vx-worker-02:APP_PUBLISH_PORT` over tailscale. Beta advances automatically on every
+`ARDA_DEPLOY_HOST:APP_PUBLISH_PORT` over tailscale. Beta advances automatically on every
 push to `develop`; prod advances only via the manual `develop` -> `main`
 promotion. See [CLAUDE.md](CLAUDE.md) for the branch and promotion model.
 
@@ -102,16 +102,16 @@ an Arda OIDC callback origin against `accounts.vxture.com`.
 
 ## Deploy
 
-Arda deploys to `vx-worker-02` (private compute, reached by its tailscale name/IP,
-same segment as vx-worker-01). Two independent stacks live on that host: `/srv/md0/arda`
+Arda deploys to `ARDA_DEPLOY_HOST` (private compute, reached by its tailscale name/IP,
+same segment as the edge host). Two independent stacks live on that host: `/srv/md0/arda`
 (prod) and `/srv/md1/arda-beta` (beta). Each release builds the one owned image
 (`arda-app`) and deploys the stack matching the pushed branch (`develop` -> beta,
 `main` -> prod). The deploy starts `arda-app` + `arda-redis` and publishes the
-app on `APP_PUBLISH_PORT`; TLS and the public domain are handled by the vx-worker-01
+app on `APP_PUBLISH_PORT`; TLS and the public domain are handled by the public
 edge, which fronts the app with the wildcard `*.vxture.com` cert.
 
 ```bash
-ssh stone@<vx-worker-02-tailscale-ip>
+ssh stone@<ARDA_DEPLOY_HOST-tailscale-ip>
 cd /srv/md0/arda            # or /srv/md1/arda-beta for the beta stack
 bash deploy/deploy.sh all
 ```
@@ -122,7 +122,7 @@ above is for operator intervention. The two stacks must never share an `.env`
 file or data directory.
 
 The public vhost arda contributes to the edge lives in `configs/edge/` (one
-`.conf` per environment). An operator installs them on vx-worker-01 by copying them
+`.conf` per environment). An operator installs them on the edge host by copying them
 into the vxture project repository and running
 `20-sync-nginx-config.sh`; see [configs/edge/README.md](configs/edge/README.md).
 

@@ -2,7 +2,7 @@
 # Create DATA_DIR and BACKUP_DIR structure with correct perms.
 #
 # Two-host topology: no nginx/letsencrypt/certbot directories here. TLS lives on
-# the shared vx-worker-01 edge; this stack only persists Redis state.
+# the shared public edge; this stack only persists Redis state.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

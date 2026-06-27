@@ -21,7 +21,7 @@ RELEASE_WORKFLOW = ".github/workflows/release.yml"
 BUILD_WORKFLOW = ".github/workflows/build.yml"
 CI_WORKFLOW = ".github/workflows/ci.yml"
 
-# arda owns exactly one image (TLS/proxy moved to the shared vx-worker-01 edge, so
+# arda owns exactly one image (TLS/proxy moved to the shared public edge, so
 # there is no arda-nginx image). The docker-build matrix, the compose image
 # references, and the change classifier must all agree on this single image.
 EXPECTED_ARDA_IMAGES = {

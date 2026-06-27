@@ -1,4 +1,4 @@
-# Edge vhosts (vx-worker-01 shared public edge)
+# Edge vhosts (edge host)
 
 These `.conf` files are the SOURCE ARTIFACTS for arda's public vhosts. arda does
 not own the public edge - it only contributes these files. The edge itself lives
@@ -10,35 +10,35 @@ in the separate vxture monorepo and is shared by every vxture app.
 Browser
    |  https (:443, *.vxture.com wildcard cert)
    v
-vx-worker-01  = SHARED vxture public edge (nginx, TLS termination)
+EDGE HOST  = SHARED public edge (nginx, TLS termination)
    |  http over tailscale (WireGuard-encrypted)
    v
-vx-worker-02  = PRIVATE compute, tailnet-only, NO public IP
+ARDA_DEPLOY_HOST  = PRIVATE compute, tailnet-only, NO public IP
              arda-app (published on APP_PUBLISH_PORT) + arda-redis
 ```
 
-- vx-worker-01 terminates TLS once for all apps using the wildcard `*.vxture.com`
+- the edge host terminates TLS once for all apps using the wildcard `*.vxture.com`
   cert at `/etc/nginx/ssl/live/vxture.com/{fullchain,privkey}.pem`. arda reuses
   that same cert - it issues no cert of its own.
-- vx-worker-02 is private (tailnet IP `100.76.219.48`, MagicDNS short name
-  `vx-worker-02`). It runs only `arda-app` + `arda-redis`. There is NO per-service
-  nginx and NO second TLS hop on vx-worker-02: the edge proxies straight to the
+- ARDA_DEPLOY_HOST is private (tailnet IP `100.76.219.48`, MagicDNS short name
+  `ARDA_DEPLOY_HOST`). It runs only `arda-app` + `arda-redis`. There is NO per-service
+  nginx and NO second TLS hop on ARDA_DEPLOY_HOST: the edge proxies straight to the
   app's published port over tailscale (the house convention, same as varda-bff).
 
 ## Files
 
 | File                         | Domain                  | Upstream            |
 |------------------------------|-------------------------|---------------------|
-| `arda.vxture.com.conf`       | `arda.vxture.com`       | `vx-worker-02:3230`    |
-| `beta-arda.vxture.com.conf`  | `beta-arda.vxture.com`  | `vx-worker-02:3231`    |
+| `arda.vxture.com.conf`       | `arda.vxture.com`       | `ARDA_DEPLOY_HOST:3230`    |
+| `beta-arda.vxture.com.conf`  | `beta-arda.vxture.com`  | `ARDA_DEPLOY_HOST:3231`    |
 
 Each file is a `:80` -> `:443` redirect plus a `:443` TLS server that proxies
 `location /` to the app over tailscale.
 
-## Install on vx-worker-01
+## Install on the edge host
 
 1. Copy both `.conf` files into the vxture project repository.
-2. On vx-worker-01, run `20-sync-nginx-config.sh` to sync and reload nginx.
+2. On the edge host, run `20-sync-nginx-config.sh` to sync and reload nginx.
 
 That is the entire integration surface. Nothing in this directory is consumed by
 the arda compose stack; these files only ever live on the shared edge.
@@ -49,12 +49,12 @@ The upstream is defined in exactly ONE labeled place per file:
 
 ```
 resolver 100.100.100.100 valid=30s ipv6=off;   # tailscale MagicDNS
-set $arda_upstream "vx-worker-02:3230";            # beta file uses vx-worker-02:3231
+set $arda_upstream "ARDA_DEPLOY_HOST:3230";            # beta file uses ARDA_DEPLOY_HOST:3231
 ```
 
-arda's policy prefers the MagicDNS NAME (`vx-worker-02`) over a raw IP. But the
+arda's policy prefers the MagicDNS NAME (`ARDA_DEPLOY_HOST`) over a raw IP. But the
 existing shared-edge nginx container resolves only Docker DNS (`127.0.0.11`), so
-every existing vxture vhost hardcodes the vx-worker-02 tailnet IP `100.76.219.48`.
+every existing vxture vhost hardcodes the ARDA_DEPLOY_HOST tailnet IP `100.76.219.48`.
 
 Using the name here therefore requires one prerequisite: the edge container must
 be able to query tailscale MagicDNS (`resolver 100.100.100.100`, reachable from
