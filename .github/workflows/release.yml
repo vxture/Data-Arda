@@ -230,6 +230,25 @@ jobs:
           fi
           echo "decide: image=$IMAGE changed=$changed exists=$exists"
 
+      - name: Debug npm install
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Temporarily test npm install directly to capture error output
+          workdir=$(mktemp -d)
+          cd "$workdir"
+          printf '@vxture:registry=%s\n' "$VXTURE_NPM_REGISTRY" > .npmrc
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" >> .npmrc
+          cat .npmrc
+          # Test token by trying to access the registry
+          echo "--- Testing registry access ---"
+          curl -v -H "Authorization: token $NODE_AUTH_TOKEN" \
+            "https://npm.pkg.github.com/@vxture%2fdesign-system" 2>&1 | head -30 || true
+          echo "--- Test complete ---"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          VXTURE_NPM_REGISTRY: ${{ env.VXTURE_NPM_REGISTRY }}
+
       - name: Build and push image
         if: ${{ steps.decide.outputs.build == 'true' }}
         uses: docker/build-push-action@v7
@@ -240,8 +259,7 @@ jobs:
           no-cache: true
           build-args: |
             VXTURE_NPM_REGISTRY=${{ env.VXTURE_NPM_REGISTRY }}
-          secrets: |
-            npm_token=${{ secrets.NODE_AUTH_TOKEN }}
+            NODE_AUTH_TOKEN=${{ secrets.NODE_AUTH_TOKEN }}
           tags: |
             ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.image_tag }}
             ghcr.io/${{ env.GHCR_NAMESPACE }}/${{ matrix.image }}:${{ steps.meta.outputs.branch_tag }}
