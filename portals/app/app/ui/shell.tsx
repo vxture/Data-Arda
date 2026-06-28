@@ -1,59 +1,40 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import {
-  SectionNav,
-  ShellBrand,
-  ShellFullscreenToggle,
-  ShellLegalFooter,
-  ShellLocaleSwitcher,
-  ShellThemeToggle,
-  useTheme,
-  type SectionNavItem,
-} from "@vxture/design-system";
-import type { Locale } from "@vxture/shared";
-import { persistTheme, type PrefTheme } from "@arda/shared/preferences";
-import { useLocale } from "@arda/shared/locale-provider";
-import { useTranslations } from "@arda/shared/i18n";
-import { ARDA_LOCALE_OPTIONS } from "@arda/shared/locales";
+import { useEffect, useState, type ReactNode } from "react";
+import { ShellLegalFooter } from "@vxture/design-system";
 import { ardaBrandCore } from "@arda/shared/brand";
+import { Header } from "./header";
+import { Sidebar } from "./sidebar";
+import { Assistant, type AssistantMode } from "./assistant";
 
-/** Element the fullscreen toggle expands; the page root carries this id. */
+/** Element the (future) fullscreen toggle expands; the page root carries this id. */
 const PAGE_FULLSCREEN_ID = "arda-page-root";
-
-/** Section key -> destination route. Only data-assets is a real surface; the
- *  rest are placeholder pages. The first path segment is the active section. */
-const SECTION_ROUTES: Record<string, string> = {
-  "data-assets": "/data-assets/overview",
-  integration: "/integration",
-  management: "/management",
-  governance: "/governance",
-  services: "/services",
-};
-
-const SECTION_KEYS = [
-  "data-assets",
-  "integration",
-  "management",
-  "governance",
-  "services",
-] as const;
+const NAV_COLLAPSE_KEY = "arda_nav_collapsed";
+const ASSISTANT_OPEN_KEY = "arda_assistant_open";
+const ASSISTANT_MODE_KEY = "arda_assistant_mode";
 
 /**
- * App chrome: a fixed brand/header bar, a left section navigation listing the
- * five platform sections, and a content column. All primitives (header tools,
- * nav, footer) are DS components; this file only composes layout.
+ * App chrome (design data-arda): a fixed brand/header bar, a grouped left
+ * sidebar with collapse, and a content column above the legal footer. All
+ * primitives come from `@vxture/design-system`; this file only composes layout
+ * and owns shell-level state (scroll glass, nav collapse).
  */
 export function Shell({ children }: { children: ReactNode }) {
-  const { theme, setTheme } = useTheme();
-  const { locale, setLocale } = useLocale();
-  const th = useTranslations("header");
-  const tn = useTranslations("nav");
-  const tb = useTranslations("brand");
-  const router = useRouter();
-  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantMode, setAssistantMode] = useState<AssistantMode>("narrow");
+
+  useEffect(() => {
+    try {
+      setNavCollapsed(localStorage.getItem(NAV_COLLAPSE_KEY) === "1");
+      setAssistantOpen(localStorage.getItem(ASSISTANT_OPEN_KEY) === "1");
+      const m = localStorage.getItem(ASSISTANT_MODE_KEY);
+      if (m === "narrow" || m === "wide" || m === "full") setAssistantMode(m);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
 
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 50);
@@ -62,84 +43,99 @@ export function Shell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("scroll", update);
   }, []);
 
-  // Active section = first path segment (e.g. /data-assets/overview -> data-assets).
-  const activeKey = useMemo(() => {
-    const seg = (pathname ?? "/").split("/").filter(Boolean)[0] ?? "data-assets";
-    return seg in SECTION_ROUTES ? seg : "data-assets";
-  }, [pathname]);
+  const setNavCollapsedPersisted = (next: boolean) =>
+    setNavCollapsed(() => {
+      try {
+        localStorage.setItem(NAV_COLLAPSE_KEY, next ? "1" : "0");
+      } catch {
+        /* storage unavailable */
+      }
+      return next;
+    });
 
-  const navItems: SectionNavItem[] = SECTION_KEYS.map((key) => ({
-    key,
-    label: tn(camelKey(key)),
-  }));
+  const toggleNav = () => setNavCollapsedPersisted(!navCollapsed);
+
+  const persistAssistant = (open: boolean, mode: AssistantMode) => {
+    try {
+      localStorage.setItem(ASSISTANT_OPEN_KEY, open ? "1" : "0");
+      localStorage.setItem(ASSISTANT_MODE_KEY, mode);
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  const toggleAssistant = () =>
+    setAssistantOpen((o) => {
+      const next = !o;
+      persistAssistant(next, assistantMode);
+      return next;
+    });
+
+  const openAssistant = () => {
+    setAssistantOpen(true);
+    persistAssistant(true, assistantMode);
+  };
+
+  const closeAssistant = () => {
+    setAssistantOpen(false);
+    setAssistantMode("narrow");
+    persistAssistant(false, "narrow");
+  };
+
+  // Widening collapses the nav to give the assistant room (design parity).
+  const toggleAssistantWide = () =>
+    setAssistantMode((m) => {
+      const next: AssistantMode = m === "wide" ? "narrow" : "wide";
+      if (next === "wide") setNavCollapsedPersisted(true);
+      persistAssistant(true, next);
+      return next;
+    });
+
+  const toggleAssistantFull = () =>
+    setAssistantMode((m) => {
+      const next: AssistantMode = m === "full" ? "narrow" : "full";
+      persistAssistant(true, next);
+      return next;
+    });
+
+  const rootClass =
+    "app-page" +
+    (navCollapsed ? " nav-collapsed" : "") +
+    (assistantOpen ? " assistant-open assistant-" + assistantMode : "");
 
   return (
-    <div id={PAGE_FULLSCREEN_ID} className="app-page">
-      <header className={`app-header${isScrolled ? " is-scrolled" : ""}`}>
-        <div className="app-header-inner">
-          <ShellBrand
-            href={ardaBrandCore.siteUrl}
-            label={
-              <span className="app-brand-lockup">
-                <span className="app-brand-name">{tb("name")}</span>
-                <span className="app-brand-tag">{tb("tag")}</span>
-              </span>
-            }
-          />
-          <div
-            className="app-header-actions"
-            role="group"
-            aria-label={th("display")}
-          >
-            <ShellThemeToggle
-              currentTheme={theme}
-              buttonLabel={th("theme")}
-              onThemeChange={(next) => {
-                setTheme(next);
-                persistTheme(next as PrefTheme);
-              }}
-            />
-            <ShellLocaleSwitcher
-              currentLocale={locale as Locale}
-              options={ARDA_LOCALE_OPTIONS}
-              buttonLabel={th("language")}
-              onLocaleChange={(next) => setLocale(next)}
-            />
-            <ShellFullscreenToggle
-              targetId={PAGE_FULLSCREEN_ID}
-              enterLabel={th("fullscreenEnter")}
-              exitLabel={th("fullscreenExit")}
-            />
-          </div>
-        </div>
+    <div id={PAGE_FULLSCREEN_ID} className={rootClass}>
+      <header className={"app-header" + (isScrolled ? " is-scrolled" : "")}>
+        <Header
+          assistantOpen={assistantOpen}
+          onToggleAssistant={toggleAssistant}
+          onOpenAssistant={openAssistant}
+        />
       </header>
 
       <div className="app-body">
-        <aside className="app-sidebar" aria-label={th("nav")}>
-          <SectionNav
-            items={navItems}
-            activeKey={activeKey}
-            onSelect={(key) => router.push(SECTION_ROUTES[key])}
-          />
+        <aside className="app-sidebar">
+          <Sidebar collapsed={navCollapsed} onToggle={toggleNav} />
         </aside>
 
         <main className="app-main">{children}</main>
+
+        {assistantOpen && (
+          <Assistant
+            mode={assistantMode}
+            onClose={closeAssistant}
+            onToggleWide={toggleAssistantWide}
+            onToggleFull={toggleAssistantFull}
+          />
+        )}
       </div>
 
       <ShellLegalFooter
         className="app-footer"
         innerClassName="app-footer-inner"
         copyright={ardaBrandCore.copyright}
-        links={ardaBrandCore.legalLinks.map(([label, href]) => ({
-          label,
-          href,
-        }))}
+        links={ardaBrandCore.legalLinks.map(([label, href]) => ({ label, href }))}
       />
     </div>
   );
-}
-
-/** Map a kebab section key to its camelCase i18n key (data-assets -> dataAssets). */
-function camelKey(key: string): string {
-  return key.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase());
 }

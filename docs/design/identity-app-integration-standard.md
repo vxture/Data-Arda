@@ -67,7 +67,9 @@ Arda requests the `arda:subscription` scope. accounts.vxture.com populates the
 }
 ```
 
-This claim is the authoritative source for entitlement. See
+`tier` must be one of the five tiers `free | starter | pro | business |
+enterprise` (arda maps any unknown value to `free`). This claim is the
+authoritative source for entitlement. See
 [`design/entitlement.md`](entitlement.md) for the full claim schema and mapping.
 
 ---

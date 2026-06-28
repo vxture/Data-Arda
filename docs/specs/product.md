@@ -67,12 +67,15 @@ claim carried in the access token issued by accounts.vxture.com.
 | Tier | Rank | Target users |
 |---|---|---|
 | `free` | 0 | Lapsed or direct-free users |
-| `pro` | 1 | Individual paid subscribers |
-| `team` | 2 | Team subscriptions |
-| `enterprise` | 3 | Enterprise contracts |
+| `starter` | 1 | Individual / entry-level users |
+| `pro` | 2 | Professional users and small teams |
+| `business` | 3 | Growing teams and departments |
+| `enterprise` | 4 | Enterprise contracts |
 
-Higher rank entitles the user to all features of lower tiers. The entitlement
-model is documented in [`design/entitlement.md`](../design/entitlement.md).
+Higher rank entitles the user to all features of lower tiers. Each tier is an
+independently-maintained product with its own feature set and limits. The
+entitlement model is documented in
+[`design/entitlement.md`](../design/entitlement.md).
 
 ---
 

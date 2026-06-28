@@ -5,19 +5,45 @@
   },
   "header": {
     "display": "显示设置",
-    "theme": "切换主题",
-    "language": "切换语言",
-    "fullscreenEnter": "进入全屏",
-    "fullscreenExit": "退出全屏",
-    "nav": "主导航"
+    "nav": "主导航",
+    "help": "帮助",
+    "notifications": "告警通知",
+    "settings": "系统设置"
+  },
+  "search": {
+    "placeholder": "搜索数据资产、服务、标准…",
+    "shortcut": "Ctrl K"
   },
   "nav": {
-    "dataAssets": "数据资产",
-    "integration": "集成",
-    "management": "管理",
-    "governance": "治理",
-    "services": "服务",
-    "overview": "概览"
+    "group": {
+      "overview": "概览",
+      "assetGovernance": "资产治理",
+      "sharedApps": "共享应用"
+    },
+    "dashboard": "数据总览",
+    "catalog": "资产目录",
+    "standards": "数据标准",
+    "quality": "数据质量",
+    "lineage": "数据血缘",
+    "security": "数据安全",
+    "services": "数据服务",
+    "dataDevelopment": "数据开发"
+  },
+  "domain": {
+    "asset": "数据资产域",
+    "integrate": "数据集成域",
+    "govern": "数据治理域",
+    "analyze": "数据分析域",
+    "serve": "数据服务域"
+  },
+  "sidebar": {
+    "expand": "展开导航",
+    "collapse": "收起导航",
+    "collapseAll": "收起全部分组",
+    "expandAll": "展开全部分组",
+    "metricTitle": "全域数据质量",
+    "metricValue": "96.8%",
+    "metricCaption": "核心资产合格率"
   },
   "overview": {
     "title": "数据资产 · 概览",
@@ -33,9 +59,148 @@
     "emptyTitle": "暂无数据集",
     "emptyDescription": "接入第一个数据源后,数据集将在此处展示。"
   },
+  "section": {
+    "catalog": {
+      "description": "数据资产统一编目、分级分类与检索发布。",
+      "block": { "title": "资产清单", "sub": "按主题域 / 分级 / 责任部门组织的数据资产目录" },
+      "stats": [
+        { "title": "资产总数", "hint": "全部已编目数据资产", "value": "12,486 项", "delta": "+286 本月", "dir": "up", "foot": [{ "k": "数据表", "v": "9,820" }, { "k": "文件", "v": "2,666" }] },
+        { "title": "核心资产", "hint": "标记为核心的关键资产", "value": "1,024 项", "foot": [{ "k": "已挂载服务", "v": "612" }, { "k": "高频访问", "v": "188" }] },
+        { "title": "本月新增", "hint": "本月新编目的资产", "value": "286 项", "delta": "12.4%", "dir": "up", "foot": [{ "k": "待审核", "v": "18" }, { "k": "已发布", "v": "268" }] },
+        { "title": "已发布共享", "hint": "对外开放共享的资产", "value": "7,340 项", "foot": [{ "k": "有条件共享", "v": "2,108" }, { "k": "无条件共享", "v": "5,232" }] }
+      ]
+    },
+    "standards": {
+      "description": "数据标准制定、评审与落地引用管理。",
+      "block": { "title": "标准库", "sub": "基础标准、指标标准与编码规范的统一管理与版本评审" },
+      "stats": [
+        { "title": "标准总数", "hint": "纳入标准库的数据标准", "value": "1,286 项", "delta": "+24 本月", "dir": "up", "foot": [{ "k": "基础标准", "v": "742" }, { "k": "指标标准", "v": "544" }] },
+        { "title": "待评审", "hint": "处于评审流程中的标准", "value": "12 项", "foot": [{ "k": "我的待办", "v": "3" }, { "k": "本周到期", "v": "5" }] },
+        { "title": "已发布", "hint": "已正式发布生效的标准", "value": "1,208 项", "delta": "98.6%", "dir": "up", "foot": [{ "k": "本年发布", "v": "164" }, { "k": "已废止", "v": "42" }] },
+        { "title": "标准引用率", "hint": "资产挂接标准的覆盖比例", "value": "88.4%", "delta": "2.1%", "dir": "up", "foot": [{ "k": "已挂接", "v": "11,032" }, { "k": "未挂接", "v": "1,454", "danger": true }] }
+      ]
+    },
+    "quality": {
+      "description": "数据质量评分、稽核规则与异常整改闭环。",
+      "block": { "title": "质量监测", "sub": "完整性 / 准确性 / 及时性等维度的稽核结果与整改工单" },
+      "stats": [
+        { "title": "平均质量分", "hint": "全域资产加权平均质量得分", "value": "96.8 分", "delta": "0.4", "dir": "up", "foot": [{ "k": "核心资产", "v": "98.2" }, { "k": "一般资产", "v": "94.6" }] },
+        { "title": "稽核规则", "hint": "已配置的质量稽核规则", "value": "642 条", "delta": "+16 本月", "dir": "up", "foot": [{ "k": "已启用", "v": "598" }, { "k": "已停用", "v": "44" }] },
+        { "title": "异常告警", "hint": "近 7 日触发的质量告警", "value": "37 条", "delta": "8 今日", "dir": "down", "foot": [{ "k": "高优先级", "v": "5", "danger": true }, { "k": "已处置", "v": "29" }] },
+        { "title": "整改工单", "hint": "进行中的质量整改任务", "value": "14 单", "foot": [{ "k": "本月完成", "v": "62" }, { "k": "已逾期", "v": "1", "danger": true }] }
+      ]
+    },
+    "lineage": {
+      "description": "数据血缘追踪、影响分析与断链监测。",
+      "block": { "title": "血缘图谱", "sub": "字段级到表级的全链路血缘关系与影响范围分析" },
+      "stats": [
+        { "title": "血缘节点", "hint": "纳入血缘图谱的实体节点", "value": "48,260 个", "foot": [{ "k": "表级", "v": "12,486" }, { "k": "字段级", "v": "35,774" }] },
+        { "title": "关联任务", "hint": "参与血缘的调度任务", "value": "1,860 个", "delta": "3.4%", "dir": "up", "foot": [{ "k": "实时", "v": "420" }, { "k": "离线", "v": "1,440" }] },
+        { "title": "影响分析", "hint": "本月发起的影响分析次数", "value": "326 次", "delta": "18.2%", "dir": "up", "foot": [{ "k": "变更评估", "v": "214" }, { "k": "故障溯源", "v": "112" }] },
+        { "title": "断链告警", "hint": "检测到的血缘断链", "value": "9 处", "delta": "2 今日", "dir": "down", "foot": [{ "k": "待修复", "v": "4", "danger": true }, { "k": "已修复", "v": "5" }] }
+      ]
+    },
+    "security": {
+      "description": "数据分级、脱敏策略与越权访问防护。",
+      "block": { "title": "安全防护", "sub": "敏感数据识别、动态脱敏与访问审计的统一管控" },
+      "stats": [
+        { "title": "脱敏策略", "hint": "已配置生效的脱敏策略", "value": "248 条", "delta": "+12 本月", "dir": "up", "foot": [{ "k": "动态脱敏", "v": "186" }, { "k": "静态脱敏", "v": "62" }] },
+        { "title": "越权拦截", "hint": "近 7 日拦截的越权访问", "value": "63 次", "delta": "11 今日", "dir": "down", "foot": [{ "k": "高风险", "v": "7", "danger": true }, { "k": "已研判", "v": "56" }] },
+        { "title": "敏感字段", "hint": "识别标记的敏感数据字段", "value": "5,420 个", "foot": [{ "k": "个人信息", "v": "3,180" }, { "k": "涉密", "v": "2,240" }] },
+        { "title": "审计日志", "hint": "当日数据访问审计记录", "value": "126 万", "delta": "4.8%", "dir": "up", "foot": [{ "k": "保留期", "v": "180 天" }, { "k": "异常标记", "v": "32" }] }
+      ]
+    },
+    "services": {
+      "description": "数据服务 API 供给、订阅与运行监控。",
+      "block": { "title": "服务供给", "sub": "API 编排、授权订阅与调用质量的全生命周期管理" },
+      "stats": [
+        { "title": "API 总数", "hint": "已发布的数据服务接口", "value": "1,386 个", "delta": "+32 本月", "dir": "up", "foot": [{ "k": "已上线", "v": "1,284" }, { "k": "灰度中", "v": "102" }] },
+        { "title": "日均调用", "hint": "近 30 日日均调用量", "value": "84.2 万", "delta": "5.6%", "dir": "up", "foot": [{ "k": "成功率", "v": "99.96%" }, { "k": "平均时延", "v": "38ms" }] },
+        { "title": "订阅方", "hint": "已授权的服务订阅单位", "value": "264 个", "delta": "+8 本月", "dir": "up", "foot": [{ "k": "政务部门", "v": "186" }, { "k": "企业", "v": "78" }] },
+        { "title": "平均时延", "hint": "全部接口平均响应时延", "value": "38 ms", "delta": "4 ms", "dir": "up", "foot": [{ "k": "P95", "v": "82ms" }, { "k": "超时率", "v": "0.04%" }] }
+      ]
+    },
+    "dataDevelopment": {
+      "description": "数据采集汇聚、开发集成与调度运维。",
+      "block": { "title": "调度运维", "sub": "采集任务、ETL 作业与调度运行状态的统一监控" },
+      "stats": [
+        { "title": "调度任务", "hint": "已配置的数据开发任务", "value": "1,860 个", "delta": "+24 本月", "dir": "up", "foot": [{ "k": "实时", "v": "420" }, { "k": "离线", "v": "1,440" }] },
+        { "title": "运行中", "hint": "当前正在运行的任务", "value": "126 个", "foot": [{ "k": "排队", "v": "18" }, { "k": "今日触发", "v": "3,240" }] },
+        { "title": "今日成功率", "hint": "当日任务运行成功比例", "value": "99.2%", "delta": "0.3%", "dir": "up", "foot": [{ "k": "成功", "v": "3,214" }, { "k": "重试", "v": "18" }] },
+        { "title": "失败任务", "hint": "当日运行失败的任务", "value": "8 个", "delta": "3 今日", "dir": "down", "foot": [{ "k": "待处理", "v": "2", "danger": true }, { "k": "已恢复", "v": "6" }] }
+      ]
+    }
+  },
   "placeholder": {
     "title": "建设中",
     "description": "该模块正在建设中,敬请期待。"
+  },
+  "assistant": {
+    "open": "Varda 助手",
+    "title": "Varda 数据助手",
+    "subtitle": "数据中台 · 智能助手",
+    "greeting": "你好,我是 Varda。助手能力正在接入中,稍后即可在此检索数据资产、解读质量指标、用自然语言取数。",
+    "inputPlaceholder": "向 Varda 提问,或描述你要的数据…",
+    "send": "发送",
+    "widen": "加宽",
+    "restore": "还原宽度",
+    "fullscreen": "全屏",
+    "exitFullscreen": "退出全屏",
+    "close": "关闭"
+  },
+  "launcher": {
+    "open": "应用中心",
+    "title": "应用中心",
+    "subscribed": "已订阅 {count} 个应用",
+    "apps": {
+      "dashboard": "全域数据驾驶舱与态势",
+      "catalog": "数据资产统一编目与检索",
+      "quality": "质量评分与稽核监控",
+      "services": "API 服务供给与共享",
+      "dataDevelopment": "采集汇聚与 ETL 集成",
+      "varda": "自然语言数据问答与取数"
+    }
+  },
+  "notifications": {
+    "title": "告警通知",
+    "emptyTitle": "暂无新通知",
+    "emptyDescription": "新的告警通知将在此显示。"
+  },
+  "user": {
+    "openMenu": "账号",
+    "logout": "退出登录",
+    "profile": "个人信息",
+    "tenant": "租户管理",
+    "switchUser": "切换用户",
+    "tierTrial": "试用",
+    "tierFree": "免费版",
+    "tierStarter": "入门版",
+    "tierPro": "专业版",
+    "tierBusiness": "商业版",
+    "tierEnterprise": "企业版",
+    "stateExpired": "已过期",
+    "level": {
+      "role": "角色",
+      "level": "等级",
+      "locked": "待解锁",
+      "member": "成员"
+    },
+    "prefs": {
+      "title": "偏好设置",
+      "theme": "主题",
+      "language": "语言",
+      "density": "密度",
+      "fontSize": "字号",
+      "themeSystem": "跟随系统",
+      "themeLight": "亮色",
+      "themeDark": "暗色",
+      "densityCompact": "紧凑",
+      "densityDefault": "默认",
+      "densityComfortable": "宽松",
+      "fontSmall": "小",
+      "fontDefault": "默认",
+      "fontLarge": "大"
+    }
   },
   "entitlement": {
     "title": "需要有效订阅",

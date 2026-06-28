@@ -1,5 +1,5 @@
-import { PlaceholderSection } from "../../ui/placeholder";
+import { SectionContent } from "../../ui/section-content";
 
 export default function ServicesPage() {
-  return <PlaceholderSection />;
+  return <SectionContent sectionKey="services" />;
 }

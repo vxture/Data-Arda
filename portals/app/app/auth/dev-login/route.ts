@@ -5,13 +5,13 @@
  *
  * URL params (all optional, fall back to env vars):
  *   state     trial | subscribed | expired | free   (default: MOCK_STATE or "subscribed")
- *   tier      free | pro | team | enterprise         (default: MOCK_TIER  or "pro")
+ *   tier      free | starter | pro | business | enterprise (default: MOCK_TIER or "pro")
  *   had_trial true | false                           (default: false)
  *   returnTo  redirect target after login            (default: DEFAULT_LANDING or "/")
  *
  * Quick-switch URLs for manual testing:
  *   /auth/dev-login?state=trial&tier=pro
- *   /auth/dev-login?state=subscribed&tier=team
+ *   /auth/dev-login?state=subscribed&tier=business
  *   /auth/dev-login?state=expired
  *   /auth/dev-login?state=free
  */

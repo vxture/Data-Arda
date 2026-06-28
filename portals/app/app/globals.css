@@ -8,8 +8,12 @@
 :root {
   /* Fixed header height. */
   --arda-header-height: 64px;
-  /* Left section-nav column width. */
+  /* Left section-nav column width (expanded) and collapsed rail width. */
   --arda-sidebar-width: 248px;
+  --arda-sidebar-rail: 64px;
+  /* Right assistant column (narrow / wide docked modes). */
+  --arda-assistant-narrow: 360px;
+  --arda-assistant-wide: 520px;
   /* Content track shared by header inner, body, and footer inner. */
   --arda-shell-max-width: 1440px;
   /* Outer page inset for the fixed header/footer bars. */
@@ -23,6 +27,17 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--vx-color-page);
+  /* Body grid column widths, set by nav-collapse / assistant modifiers below. */
+  --arda-col-nav: var(--arda-sidebar-width);
+  --arda-col-assistant: var(--arda-assistant-narrow);
+}
+
+.app-page.nav-collapsed {
+  --arda-col-nav: var(--arda-sidebar-rail);
+}
+
+.app-page.assistant-wide {
+  --arda-col-assistant: var(--arda-assistant-wide);
 }
 
 /* Header chrome: fixed, transparent, glass on scroll. Positions the bar only;
@@ -77,7 +92,233 @@
 .app-header-actions {
   display: inline-flex;
   align-items: center;
+  gap: var(--vx-space-md);
+}
+
+/* Brand + active-plan tag cluster (left of the header). */
+.app-brand-zone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vx-space-sm);
+}
+
+.app-plan-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* System action group (help / alerts / settings). */
+.app-action-group {
+  display: inline-flex;
+  align-items: center;
   gap: var(--vx-space-xs);
+}
+
+/* Alerts button + corner count overlay. */
+.app-bell {
+  position: relative;
+  display: inline-flex;
+}
+
+.app-action-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  pointer-events: none;
+}
+
+/* Left lead cluster: launcher + brand. */
+.app-header-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vx-space-md);
+}
+
+/* App-center launcher trigger (icon button). */
+.app-launcher-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--vx-radius-md);
+  background: transparent;
+  color: var(--vx-color-text-muted);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.app-launcher-btn:hover,
+.app-launcher-btn.is-active {
+  background: var(--vx-color-shell-hover);
+  color: var(--vx-color-text-strong);
+}
+
+/* App-center popover (DS PopoverContent provides the surface; this lays out). */
+.app-launcher {
+  width: 360px;
+  max-width: 92vw;
+}
+
+.app-launcher-hd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--vx-space-sm);
+}
+
+.app-launcher-title {
+  font-weight: 600;
+  color: var(--vx-color-text-strong);
+}
+
+.app-launcher-sub {
+  font-size: 0.75rem;
+  color: var(--vx-color-text-muted);
+}
+
+.app-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--vx-space-xs);
+}
+
+.app-launcher-app {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vx-space-sm);
+  padding: var(--vx-space-sm);
+  border: none;
+  border-radius: var(--vx-radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.app-launcher-app:hover {
+  background: var(--vx-color-shell-hover);
+}
+
+.app-launcher-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--vx-radius-md);
+  background: var(--vx-color-brand-50);
+  color: var(--vx-color-brand-600);
+}
+
+.app-launcher-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-launcher-copy strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vx-color-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-launcher-copy small {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--vx-color-text-muted);
+}
+
+/* Header search (composed affordance). */
+.app-search {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-xs);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 420px;
+  height: 36px;
+  padding: 0 var(--vx-space-sm);
+  border: 1px solid var(--vx-color-border);
+  border-radius: var(--vx-radius-md);
+  background: var(--vx-color-surface);
+  color: var(--vx-color-text-muted);
+  transition: border-color 140ms ease;
+}
+
+.app-search:focus-within {
+  border-color: var(--vx-color-brand-600);
+}
+
+.app-search-ico {
+  flex: none;
+}
+
+.app-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--vx-color-text);
+  font: inherit;
+}
+
+.app-search-input::placeholder {
+  color: var(--vx-color-text-muted);
+}
+
+.app-search-kbd {
+  flex: none;
+  padding: 1px 5px;
+  font-size: 0.6875rem;
+  color: var(--vx-color-text-muted);
+  border: 1px solid var(--vx-color-border);
+  border-radius: var(--vx-radius-sm);
+}
+
+/* User level / medal slots (user menu head). */
+.app-userlevel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vx-space-xs);
+}
+
+.app-userlevel-lead {
+  color: var(--vx-color-text-muted);
+}
+
+.app-userlevel-slots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.app-userlevel-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--vx-color-surface-muted);
+  color: var(--vx-color-text-muted);
+}
+
+.app-userlevel-slot[data-state="role"] {
+  background: var(--vx-color-brand-50);
+  color: var(--vx-color-brand-600);
+}
+
+.app-userlevel-slot[data-state="level"] {
+  background: var(--vx-color-info-50);
+  color: var(--vx-color-info-600);
 }
 
 /* Body: left section nav + content column, both inside the shared track. */
@@ -87,7 +328,7 @@
   max-width: calc(var(--arda-shell-max-width) + 2 * var(--arda-shell-margin-x));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: var(--arda-sidebar-width) minmax(0, 1fr);
+  grid-template-columns: var(--arda-col-nav) minmax(0, 1fr);
   gap: var(--vx-space-2xl);
   padding:
     calc(var(--arda-header-height) + var(--vx-space-xl))
@@ -105,9 +346,351 @@
   min-width: 0;
 }
 
+/* Docked assistant: add a right column (full mode overlays instead). */
+.app-page.assistant-open:not(.assistant-full) .app-body {
+  grid-template-columns: var(--arda-col-nav) minmax(0, 1fr) var(--arda-col-assistant);
+}
+
+/* ===== Assistant panel (Varda) ===== */
+.app-assistant {
+  position: sticky;
+  top: calc(var(--arda-header-height) + var(--vx-space-xl));
+  align-self: start;
+  height: calc(100vh - var(--arda-header-height) - 2 * var(--vx-space-xl));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--vx-color-border);
+  border-radius: var(--vx-radius-lg);
+  background: var(--vx-color-surface);
+  overflow: hidden;
+}
+
+.app-assistant-hd {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-sm);
+  padding: var(--vx-space-md);
+  border-bottom: 1px solid var(--vx-color-border);
+}
+
+.app-assistant-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--vx-radius-md);
+  background: var(--vx-color-brand-50);
+  color: var(--vx-color-brand-600);
+}
+
+.app-assistant-id {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-assistant-title {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-xs);
+  font-weight: 600;
+  color: var(--vx-color-text-strong);
+}
+
+.app-assistant-sub {
+  font-size: 0.75rem;
+  color: var(--vx-color-text-muted);
+}
+
+.app-assistant-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vx-space-md);
+  padding: var(--vx-space-md);
+}
+
+.app-assistant-ft {
+  padding: var(--vx-space-md);
+  border-top: 1px solid var(--vx-color-border);
+}
+
+/* Full mode: fixed overlay over the whole viewport. */
+.app-assistant.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  height: 100vh;
+  border: none;
+  border-radius: 0;
+}
+
+/* ===== Sidebar (grouped, collapsible) ===== */
+.app-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vx-space-lg);
+}
+
+/* Rail: collapse toggle + active functional-domain label. */
+.app-side-rail {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-xs);
+  min-height: 32px;
+}
+
+.app-side-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--vx-radius-md);
+  background: transparent;
+  color: var(--vx-color-text-muted);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.app-side-toggle:hover {
+  background: var(--vx-color-shell-hover);
+  color: var(--vx-color-text-strong);
+}
+
+.app-side-domain {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vx-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vx-space-md);
+}
+
+.app-nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vx-space-xs);
+}
+
+.app-nav-section-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--vx-space-xs) var(--vx-space-xs);
+  border: none;
+  background: transparent;
+  color: var(--vx-color-text-muted);
+  cursor: pointer;
+}
+
+.app-nav-section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-nav-section-caret {
+  color: var(--vx-color-text-muted);
+}
+
+.app-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-sm);
+  width: 100%;
+  padding: var(--vx-space-xs) var(--vx-space-sm);
+  border: none;
+  border-radius: var(--vx-radius-md);
+  background: transparent;
+  color: var(--vx-color-text);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.app-nav-item:hover {
+  background: var(--vx-color-shell-hover);
+  color: var(--vx-color-text-strong);
+}
+
+.app-nav-item.is-active {
+  background: var(--vx-color-brand-50);
+  color: var(--vx-color-brand-700);
+  font-weight: 600;
+}
+
+.app-nav-item-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Footer metric card. */
+.app-side-foot {
+  margin-top: auto;
+}
+
+.app-side-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vx-space-xs);
+  padding: var(--vx-space-md);
+  border: 1px solid var(--vx-color-border);
+  border-radius: var(--vx-radius-lg);
+  background: var(--vx-color-surface);
+}
+
+.app-side-metric-top {
+  display: flex;
+  align-items: center;
+  gap: var(--vx-space-xs);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vx-color-text-strong);
+}
+
+.app-side-metric-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--vx-color-border);
+  overflow: hidden;
+}
+
+.app-side-metric-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--vx-color-brand-600);
+}
+
+.app-side-metric-caption {
+  font-size: 0.75rem;
+  color: var(--vx-color-text-muted);
+}
+
+/* Collapsed rail: hide labels, group titles, and footer; icons only. */
+.app-side.is-collapsed .app-nav-item {
+  justify-content: center;
+  padding-inline: var(--vx-space-xs);
+}
+
+.app-side.is-collapsed .app-nav-item-label {
+  display: none;
+}
+
 /* Generic section wrapper used by placeholder pages. */
 .app-section {
   padding-block: var(--vx-space-2xl);
+}
+
+/* ===== Per-section stat grid (P4 content) ===== */
+.app-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--vx-space-lg);
+}
+
+/* Stat icon chip: brand by default, accented per data-tone. */
+.app-stat-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--vx-radius-md);
+  background: var(--vx-color-brand-50);
+  color: var(--vx-color-brand-600);
+}
+
+.app-stat-ico[data-tone="info"] {
+  background: var(--vx-color-info-50);
+  color: var(--vx-color-info-600);
+}
+
+.app-stat-ico[data-tone="success"] {
+  background: var(--vx-color-success-50);
+  color: var(--vx-color-success-600);
+}
+
+.app-stat-ico[data-tone="warning"] {
+  background: var(--vx-color-warning-50);
+  color: var(--vx-color-warning-600);
+}
+
+.app-stat-ico[data-tone="danger"] {
+  background: var(--vx-color-danger-50);
+  color: var(--vx-color-danger-600);
+}
+
+.app-stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Stat title + info hint. */
+.app-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-stat-hint {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--vx-color-text-muted);
+  cursor: help;
+}
+
+/* Stat footer key/value rows. */
+.app-stat-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vx-space-lg);
+  margin-top: var(--vx-space-xs);
+}
+
+.app-stat-foot-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.app-stat-foot-k {
+  font-size: 0.6875rem;
+  color: var(--vx-color-text-muted);
+}
+
+.app-stat-foot-v {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vx-color-text-strong);
+}
+
+.app-stat-foot-item.is-danger .app-stat-foot-v {
+  color: var(--vx-color-danger-600);
 }
 
 /* Icon + label cluster used inside DS EmptyState titles. */
@@ -154,5 +737,24 @@
   .app-sidebar {
     position: static;
     top: auto;
+  }
+
+  /* No room for the centered search on narrow viewports. */
+  .app-search {
+    display: none;
+  }
+
+  /* Assistant has no room to dock on narrow viewports: overlay full instead. */
+  .app-page.assistant-open:not(.assistant-full) .app-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-assistant {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    height: 100vh;
+    border: none;
+    border-radius: 0;
   }
 }

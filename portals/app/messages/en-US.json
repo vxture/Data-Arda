@@ -5,19 +5,45 @@
   },
   "header": {
     "display": "Display controls",
-    "theme": "Switch theme",
-    "language": "Language",
-    "fullscreenEnter": "Enter fullscreen",
-    "fullscreenExit": "Exit fullscreen",
-    "nav": "Primary navigation"
+    "nav": "Primary navigation",
+    "help": "Help",
+    "notifications": "Alerts",
+    "settings": "System settings"
+  },
+  "search": {
+    "placeholder": "Search assets, services, standards...",
+    "shortcut": "Ctrl K"
   },
   "nav": {
-    "dataAssets": "Data Assets",
-    "integration": "Integration",
-    "management": "Management",
-    "governance": "Governance",
-    "services": "Services",
-    "overview": "Overview"
+    "group": {
+      "overview": "Overview",
+      "assetGovernance": "Asset Governance",
+      "sharedApps": "Shared Apps"
+    },
+    "dashboard": "Data Overview",
+    "catalog": "Asset Catalog",
+    "standards": "Data Standards",
+    "quality": "Data Quality",
+    "lineage": "Data Lineage",
+    "security": "Data Security",
+    "services": "Data Services",
+    "dataDevelopment": "Data Development"
+  },
+  "domain": {
+    "asset": "Data Asset Domain",
+    "integrate": "Data Integration Domain",
+    "govern": "Data Governance Domain",
+    "analyze": "Data Analytics Domain",
+    "serve": "Data Service Domain"
+  },
+  "sidebar": {
+    "expand": "Expand navigation",
+    "collapse": "Collapse navigation",
+    "collapseAll": "Collapse all groups",
+    "expandAll": "Expand all groups",
+    "metricTitle": "Platform Data Quality",
+    "metricValue": "96.8%",
+    "metricCaption": "Core asset pass rate"
   },
   "overview": {
     "title": "Data Assets / Overview",
@@ -33,9 +59,148 @@
     "emptyTitle": "No datasets yet",
     "emptyDescription": "Once you connect your first data source, datasets will show up here."
   },
+  "section": {
+    "catalog": {
+      "description": "Unified cataloging, classification, and publishing of data assets.",
+      "block": { "title": "Asset Inventory", "sub": "Assets organized by subject domain, level, and owning department" },
+      "stats": [
+        { "title": "Total Assets", "hint": "All cataloged data assets", "value": "12,486", "delta": "+286 MTD", "dir": "up", "foot": [{ "k": "Tables", "v": "9,820" }, { "k": "Files", "v": "2,666" }] },
+        { "title": "Core Assets", "hint": "Key assets flagged as core", "value": "1,024", "foot": [{ "k": "With services", "v": "612" }, { "k": "High traffic", "v": "188" }] },
+        { "title": "New This Month", "hint": "Assets cataloged this month", "value": "286", "delta": "12.4%", "dir": "up", "foot": [{ "k": "Pending review", "v": "18" }, { "k": "Published", "v": "268" }] },
+        { "title": "Published & Shared", "hint": "Assets shared externally", "value": "7,340", "foot": [{ "k": "Conditional", "v": "2,108" }, { "k": "Unconditional", "v": "5,232" }] }
+      ]
+    },
+    "standards": {
+      "description": "Authoring, review, and applied governance of data standards.",
+      "block": { "title": "Standards Library", "sub": "Unified management and version review of base, metric, and coding standards" },
+      "stats": [
+        { "title": "Total Standards", "hint": "Standards in the library", "value": "1,286", "delta": "+24 MTD", "dir": "up", "foot": [{ "k": "Base", "v": "742" }, { "k": "Metric", "v": "544" }] },
+        { "title": "Pending Review", "hint": "Standards in review", "value": "12", "foot": [{ "k": "My queue", "v": "3" }, { "k": "Due this week", "v": "5" }] },
+        { "title": "Published", "hint": "Officially published standards", "value": "1,208", "delta": "98.6%", "dir": "up", "foot": [{ "k": "Published YTD", "v": "164" }, { "k": "Retired", "v": "42" }] },
+        { "title": "Reference Rate", "hint": "Share of assets linked to standards", "value": "88.4%", "delta": "2.1%", "dir": "up", "foot": [{ "k": "Linked", "v": "11,032" }, { "k": "Unlinked", "v": "1,454", "danger": true }] }
+      ]
+    },
+    "quality": {
+      "description": "Quality scoring, audit rules, and exception remediation loop.",
+      "block": { "title": "Quality Monitoring", "sub": "Audit results and remediation tickets across completeness, accuracy, and timeliness" },
+      "stats": [
+        { "title": "Avg Quality Score", "hint": "Weighted average quality score", "value": "96.8", "delta": "0.4", "dir": "up", "foot": [{ "k": "Core", "v": "98.2" }, { "k": "General", "v": "94.6" }] },
+        { "title": "Audit Rules", "hint": "Configured quality audit rules", "value": "642", "delta": "+16 MTD", "dir": "up", "foot": [{ "k": "Enabled", "v": "598" }, { "k": "Disabled", "v": "44" }] },
+        { "title": "Exception Alerts", "hint": "Alerts in the last 7 days", "value": "37", "delta": "8 today", "dir": "down", "foot": [{ "k": "High priority", "v": "5", "danger": true }, { "k": "Handled", "v": "29" }] },
+        { "title": "Remediation Tickets", "hint": "Remediation tasks in progress", "value": "14", "foot": [{ "k": "Done MTD", "v": "62" }, { "k": "Overdue", "v": "1", "danger": true }] }
+      ]
+    },
+    "lineage": {
+      "description": "Lineage tracing, impact analysis, and broken-link monitoring.",
+      "block": { "title": "Lineage Graph", "sub": "Field- to table-level end-to-end lineage and impact scope analysis" },
+      "stats": [
+        { "title": "Lineage Nodes", "hint": "Entities in the lineage graph", "value": "48,260", "foot": [{ "k": "Table", "v": "12,486" }, { "k": "Field", "v": "35,774" }] },
+        { "title": "Linked Jobs", "hint": "Jobs participating in lineage", "value": "1,860", "delta": "3.4%", "dir": "up", "foot": [{ "k": "Realtime", "v": "420" }, { "k": "Batch", "v": "1,440" }] },
+        { "title": "Impact Analyses", "hint": "Impact analyses this month", "value": "326", "delta": "18.2%", "dir": "up", "foot": [{ "k": "Change review", "v": "214" }, { "k": "Root cause", "v": "112" }] },
+        { "title": "Broken-link Alerts", "hint": "Detected broken links", "value": "9", "delta": "2 today", "dir": "down", "foot": [{ "k": "To fix", "v": "4", "danger": true }, { "k": "Fixed", "v": "5" }] }
+      ]
+    },
+    "security": {
+      "description": "Data classification, masking policies, and access protection.",
+      "block": { "title": "Security Protection", "sub": "Unified control of sensitive-data discovery, dynamic masking, and access auditing" },
+      "stats": [
+        { "title": "Masking Policies", "hint": "Active masking policies", "value": "248", "delta": "+12 MTD", "dir": "up", "foot": [{ "k": "Dynamic", "v": "186" }, { "k": "Static", "v": "62" }] },
+        { "title": "Access Blocks", "hint": "Blocked access in the last 7 days", "value": "63", "delta": "11 today", "dir": "down", "foot": [{ "k": "High risk", "v": "7", "danger": true }, { "k": "Reviewed", "v": "56" }] },
+        { "title": "Sensitive Fields", "hint": "Identified sensitive fields", "value": "5,420", "foot": [{ "k": "PII", "v": "3,180" }, { "k": "Classified", "v": "2,240" }] },
+        { "title": "Audit Logs", "hint": "Access audit records today", "value": "1.26M", "delta": "4.8%", "dir": "up", "foot": [{ "k": "Retention", "v": "180d" }, { "k": "Flagged", "v": "32" }] }
+      ]
+    },
+    "services": {
+      "description": "Data-service API supply, subscription, and runtime monitoring.",
+      "block": { "title": "Service Supply", "sub": "Full lifecycle of API orchestration, authorized subscription, and call quality" },
+      "stats": [
+        { "title": "Total APIs", "hint": "Published data-service APIs", "value": "1,386", "delta": "+32 MTD", "dir": "up", "foot": [{ "k": "Live", "v": "1,284" }, { "k": "Canary", "v": "102" }] },
+        { "title": "Daily Calls", "hint": "Average daily calls (30d)", "value": "842K", "delta": "5.6%", "dir": "up", "foot": [{ "k": "Success", "v": "99.96%" }, { "k": "Latency", "v": "38ms" }] },
+        { "title": "Subscribers", "hint": "Authorized service subscribers", "value": "264", "delta": "+8 MTD", "dir": "up", "foot": [{ "k": "Public sector", "v": "186" }, { "k": "Enterprise", "v": "78" }] },
+        { "title": "Avg Latency", "hint": "Average response latency across APIs", "value": "38 ms", "delta": "4 ms", "dir": "up", "foot": [{ "k": "P95", "v": "82ms" }, { "k": "Timeout", "v": "0.04%" }] }
+      ]
+    },
+    "dataDevelopment": {
+      "description": "Data ingestion, development integration, and scheduling operations.",
+      "block": { "title": "Scheduling Ops", "sub": "Unified monitoring of ingestion tasks, ETL jobs, and scheduler run status" },
+      "stats": [
+        { "title": "Scheduled Jobs", "hint": "Configured development jobs", "value": "1,860", "delta": "+24 MTD", "dir": "up", "foot": [{ "k": "Realtime", "v": "420" }, { "k": "Batch", "v": "1,440" }] },
+        { "title": "Running", "hint": "Currently running jobs", "value": "126", "foot": [{ "k": "Queued", "v": "18" }, { "k": "Triggered today", "v": "3,240" }] },
+        { "title": "Success Rate Today", "hint": "Job success rate today", "value": "99.2%", "delta": "0.3%", "dir": "up", "foot": [{ "k": "Success", "v": "3,214" }, { "k": "Retries", "v": "18" }] },
+        { "title": "Failed Jobs", "hint": "Jobs failed today", "value": "8", "delta": "3 today", "dir": "down", "foot": [{ "k": "Pending", "v": "2", "danger": true }, { "k": "Recovered", "v": "6" }] }
+      ]
+    }
+  },
   "placeholder": {
     "title": "Under construction",
     "description": "This module is under construction. Stay tuned."
+  },
+  "assistant": {
+    "open": "Varda assistant",
+    "title": "Varda Assistant",
+    "subtitle": "Data platform assistant",
+    "greeting": "Hi, I am Varda. The assistant experience is being wired up - ask, retrieve data, and read quality metrics here soon.",
+    "inputPlaceholder": "Ask Varda, or describe the data you need...",
+    "send": "Send",
+    "widen": "Widen",
+    "restore": "Restore width",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "close": "Close"
+  },
+  "launcher": {
+    "open": "App center",
+    "title": "App Center",
+    "subscribed": "{count} apps subscribed",
+    "apps": {
+      "dashboard": "Cross-domain data cockpit and status",
+      "catalog": "Unified asset cataloging and search",
+      "quality": "Quality scoring and audit monitoring",
+      "services": "API supply and sharing",
+      "dataDevelopment": "Ingestion and ETL integration",
+      "varda": "Natural-language data Q&A and retrieval"
+    }
+  },
+  "notifications": {
+    "title": "Alerts",
+    "emptyTitle": "No new alerts",
+    "emptyDescription": "New alert notifications will appear here."
+  },
+  "user": {
+    "openMenu": "Account",
+    "logout": "Sign out",
+    "profile": "Profile",
+    "tenant": "Tenant administration",
+    "switchUser": "Switch user",
+    "tierTrial": "Trial",
+    "tierFree": "Free",
+    "tierStarter": "Starter",
+    "tierPro": "Pro",
+    "tierBusiness": "Business",
+    "tierEnterprise": "Enterprise",
+    "stateExpired": "Expired",
+    "level": {
+      "role": "Role",
+      "level": "Level",
+      "locked": "Locked",
+      "member": "Member"
+    },
+    "prefs": {
+      "title": "Preferences",
+      "theme": "Theme",
+      "language": "Language",
+      "density": "Density",
+      "fontSize": "Font size",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "densityCompact": "Compact",
+      "densityDefault": "Default",
+      "densityComfortable": "Comfortable",
+      "fontSmall": "Small",
+      "fontDefault": "Default",
+      "fontLarge": "Large"
+    }
   },
   "entitlement": {
     "title": "An active subscription is required",
