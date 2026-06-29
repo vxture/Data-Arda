@@ -1,0 +1,122 @@
+name: seed
+
+# Manually seed a workspace with demo/sample catalog data on a deployed stack.
+# The stack Postgres is internal to the compose network (no published port), so
+# this runs on the host over SSH (same tailscale/SSH path as release.yml) and
+# pipes prisma/seed.sql into the DB container. Idempotent (re-running upserts).
+#
+#   gh workflow run seed.yml -f environment=beta -f workspace_id=<active_workspace>
+#
+# Get the workspace id by logging into the app and opening /auth/session.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target stack"
+        required: true
+        type: choice
+        options:
+          - beta
+          - production
+      workspace_id:
+        description: "Workspace id to seed (the user's active_workspace)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seed-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: seed-workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate inputs and secrets
+        shell: bash
+        env:
+          WS: ${{ inputs.workspace_id }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          TAILSCALE_OAUTH_CLIENT_ID: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          TAILSCALE_OAUTH_CLIENT_SECRET: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$TAILSCALE_OAUTH_CLIENT_ID"
+          test -n "$TAILSCALE_OAUTH_CLIENT_SECRET"
+          # Guard against injection: workspace ids are opaque identifiers.
+          if ! printf '%s' "$WS" | grep -Eq '^[A-Za-z0-9._:-]+$'; then
+            echo "invalid workspace_id (allowed: A-Z a-z 0-9 . _ : -)" >&2
+            exit 1
+          fi
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: ${{ vars.TAILSCALE_OAUTH_CLIENT_TAG }}
+          ping: ${{ secrets.DEPLOY_HOST }}
+
+      - name: Prepare SSH
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          port="${DEPLOY_PORT:-22}"
+          if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$port" "$DEPLOY_HOST" > ~/.ssh/known_hosts
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Seed over SSH
+        shell: bash
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          WS: ${{ inputs.workspace_id }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          # container_name is ${PROJECT_NAME}-db: prod=arda-db, beta=arda-beta-db.
+          case "$ENVIRONMENT" in
+            production) db="arda-db" ;;
+            beta)       db="arda-beta-db" ;;
+            *) echo "unknown environment: $ENVIRONMENT" >&2; exit 1 ;;
+          esac
+          echo "Seeding workspace '$WS' into $db on $DEPLOY_HOST ..."
+          # Pipe seed.sql to psql inside the db container (-i keeps stdin). The
+          # default postgres user/db are 'arda' (compose default); local docker
+          # exec connects without a password.
+          ssh -i ~/.ssh/deploy_key -p "$port" \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=20 \
+            -o ConnectTimeout=30 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "docker exec -i $db psql -U arda -d arda -v ON_ERROR_STOP=1 -v workspace_id=$WS" \
+            < portals/app/prisma/seed.sql
+          echo "Done."
