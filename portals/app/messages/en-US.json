@@ -409,6 +409,45 @@
       "approved": "Approved"
     }
   },
+  "service": {
+    "eyebrow": "Shared Apps",
+    "title": "Data Services",
+    "description": "Package data assets as standard APIs and serve them to teams and applications.",
+    "docs": "API docs",
+    "publish": "Publish service",
+    "metrics": {
+      "online": "Online Services",
+      "onlineTrend": "+12 this month",
+      "calls": "Calls Today",
+      "callsTrend": "+7.6% MoM",
+      "p99": "Avg P99",
+      "p99Trend": "-8ms",
+      "sla": "SLA Attainment"
+    },
+    "domain": {
+      "customer": "Customer",
+      "product": "Product",
+      "marketing": "Marketing",
+      "finance": "Finance",
+      "operations": "Operations",
+      "web": "Web"
+    },
+    "level": {
+      "public": "Public",
+      "internal": "Internal",
+      "sensitive": "Sensitive",
+      "core": "Core"
+    },
+    "status": {
+      "running": "Running",
+      "review": "In review",
+      "paused": "Paused"
+    },
+    "stat": {
+      "calls": "Calls today",
+      "subs": "Subs"
+    }
+  },
   "placeholder": {
     "title": "Under construction",
     "description": "This module is under construction. Stay tuned."

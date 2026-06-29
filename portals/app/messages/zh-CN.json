@@ -409,6 +409,45 @@
       "approved": "已通过"
     }
   },
+  "service": {
+    "eyebrow": "共享应用",
+    "title": "数据服务",
+    "description": "将数据资产封装为标准 API，面向团队与应用统一供给。",
+    "docs": "API 文档",
+    "publish": "发布服务",
+    "metrics": {
+      "online": "在线服务",
+      "onlineTrend": "本月发布 12",
+      "calls": "今日调用",
+      "callsTrend": "环比 +7.6%",
+      "p99": "平均 P99",
+      "p99Trend": "优化 8ms",
+      "sla": "SLA 达成"
+    },
+    "domain": {
+      "customer": "客户",
+      "product": "产品",
+      "marketing": "营销",
+      "finance": "财务",
+      "operations": "运营",
+      "web": "网络"
+    },
+    "level": {
+      "public": "公开",
+      "internal": "内部",
+      "sensitive": "敏感",
+      "core": "核心"
+    },
+    "status": {
+      "running": "运行中",
+      "review": "审核中",
+      "paused": "已暂停"
+    },
+    "stat": {
+      "calls": "今日调用",
+      "subs": "订阅"
+    }
+  },
   "placeholder": {
     "title": "正在开发中",
     "description": "该模块正在开发中，敬请期待。"

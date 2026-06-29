@@ -1226,6 +1226,79 @@
   color: var(--vx-color-text-muted);
 }
 
+/* --------------------------------------------------------------- service --- */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--vx-space-md);
+}
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--vx-space-md);
+  border: 1px solid var(--vx-color-border);
+  border-radius: var(--vx-radius-xl);
+  background: var(--vx-color-surface);
+  box-shadow: var(--vx-shadow-sm);
+}
+.sc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sc-method {
+  font-family: var(--vx-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+.sc-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--vx-color-text-strong);
+}
+.sc-path {
+  font-family: var(--vx-font-mono);
+  font-size: 12px;
+  color: var(--vx-color-text-muted);
+}
+.sc-desc {
+  font-size: 12px;
+  color: var(--vx-color-text-secondary);
+  line-height: 1.5;
+}
+.sc-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--vx-space-xs);
+  padding-top: 8px;
+  border-top: 1px solid var(--vx-color-border-muted);
+}
+.sc-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.scs-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vx-color-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.scs-label {
+  font-size: 11px;
+  color: var(--vx-color-text-muted);
+}
+
 /* --------------------------------------------------------------- lineage --- */
 .lineage-toolbar {
   display: flex;
