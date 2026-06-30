@@ -23,7 +23,37 @@
     "theme_system": "System",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "language": "Language"
+    "language": "Language",
+    "prefs": "Preferences",
+    "density": "Density",
+    "density_compact": "Compact",
+    "density_default": "Default",
+    "density_comfortable": "Comfy",
+    "fontSize": "Font size",
+    "fontSize_small": "S",
+    "fontSize_default": "M",
+    "fontSize_large": "L",
+    "assistant": "Varda assistant"
+  },
+  "assistant": {
+    "title": "Varda assistant",
+    "subtitle": "Data console assistant",
+    "widen": "Widen",
+    "narrow": "Restore width",
+    "full": "Fullscreen",
+    "exitFull": "Exit fullscreen",
+    "close": "Close",
+    "greeting": "Hi, I'm Varda. I can search data assets, explain quality metrics, or turn natural language into a query.",
+    "q1": "Which core assets dropped in quality score last month?",
+    "toolName": "quality.compare",
+    "toolArg": "{\"level\":\"core\",\"period\":\"MoM\"}",
+    "toolRes": "{\"declined\":2}",
+    "a1": "Two core assets declined last month. The likely cause is a slipping refresh pipeline; review the upstream job first.",
+    "sug1": "View the pipeline",
+    "sug2": "Open a remediation ticket",
+    "inputPlaceholder": "Ask Varda, or describe the data you need...",
+    "send": "Send",
+    "authorized": "Current workspace - authorized"
   },
   "board": {
     "asset": "Data Assets",
@@ -462,6 +492,57 @@
     "stat": {
       "calls": "Calls today",
       "subs": "Subs"
+    }
+  },
+  "etl": {
+    "eyebrow": "Sharing & apps",
+    "title": "Data development",
+    "description": "Orchestrate and operate batch and streaming jobs for ingest, cleansing and fusion",
+    "orchestrate": "Orchestrate",
+    "newJob": "New job",
+    "opsTitle": "Job operations",
+    "opsSub": "Batch and streaming pipelines",
+    "run": "Run",
+    "logs": "Logs",
+    "metrics": {
+      "jobs": "Scheduled jobs",
+      "success": "Success rate today",
+      "realtime": "Realtime pipelines",
+      "volume": "Volume today (B rows)"
+    },
+    "seg": {
+      "all": "All",
+      "running": "Running",
+      "issues": "Issues"
+    },
+    "col": {
+      "task": "Job",
+      "source": "Source",
+      "target": "Target",
+      "status": "Status",
+      "rows": "Rows",
+      "dur": "Duration",
+      "schedule": "Schedule"
+    },
+    "status": {
+      "success": "Success",
+      "running": "Running",
+      "warning": "Warning",
+      "failed": "Failed"
+    },
+    "schedule": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "q15m": "Every 15 min",
+      "stream": "Streaming"
+    },
+    "rows": {
+      "p1": { "name": "Customer domain daily merge", "source": "3 sources", "target": "dw_customer_*" },
+      "p2": { "name": "Entity 4-store fusion", "source": "2 sources", "target": "dw_entity_*" },
+      "p3": { "name": "Realtime event ingest", "source": "Kafka", "target": "dw_event_stream" },
+      "p4": { "name": "Document CDC sync", "source": "CDC", "target": "dw_doc_*" },
+      "p5": { "name": "Geo vector tiling", "source": "GIS", "target": "dw_geo_tiles" },
+      "p6": { "name": "IoT sensor cleansing", "source": "IoT gateway", "target": "dw_sensor_*" }
     }
   },
   "placeholder": {

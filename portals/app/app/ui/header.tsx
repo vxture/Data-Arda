@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShellFullscreenToggle, useTheme } from "@vxture/design-system";
 import type { Locale, Theme } from "@vxture/shared";
-import { persistTheme, type PrefTheme } from "@arda/shared/preferences";
+import {
+  persistTheme,
+  persistDensity,
+  persistFontSize,
+  getFontSize,
+  type PrefTheme,
+  type PrefDensity,
+  type PrefFontSize,
+} from "@arda/shared/preferences";
 import { useLocale } from "@arda/shared/locale-provider";
 import { useTranslations } from "@arda/shared/i18n";
 import { ARDA_LOCALE_OPTIONS } from "@arda/shared/locales";
@@ -12,18 +20,64 @@ import { BOARDS, PLAN_TAGS, USER_LEVELS } from "./nav-config";
 
 const PAGE_FULLSCREEN_ID = "arda-page-root";
 const THEME_OPTIONS: Theme[] = ["system", "light", "dark"];
+const DENSITY_OPTIONS: PrefDensity[] = ["compact", "default", "comfortable"];
+const FONTSIZE_OPTIONS: PrefFontSize[] = ["small", "default", "large"];
+
+/** Full-width segmented control used in the preferences block. */
+function PrefSeg<T extends string>({
+  icon,
+  label,
+  value,
+  options,
+  optionLabel,
+  onChange,
+}: {
+  icon: "sun" | "rows" | "text-aa";
+  label: string;
+  value: T;
+  options: readonly T[];
+  optionLabel: (opt: T) => string;
+  onChange: (opt: T) => void;
+}) {
+  return (
+    <div className="vxh-pref-row">
+      <PIcon className="vxh-pref-ico" name={icon} />
+      <span className="vxh-pref-label">{label}</span>
+      <div className="vxh-seg full">
+        {options.map((opt) => (
+          <button key={opt} className={value === opt ? "on" : ""} onClick={() => onChange(opt)}>
+            {optionLabel(opt)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 interface HeaderProps {
   activeKey: string;
   onSelect: (route: string) => void;
   onOpenNotifications: () => void;
+  /** Toggle the Varda assistant panel. */
+  onToggleAssistant?: () => void;
+  /** Whether the Varda assistant panel is open (for the entry button state). */
+  assistantOpen?: boolean;
   /** Subscription plan key (free | starter | pro | business | enterprise). */
   brandPlan?: string;
 }
 
-export function Header({ activeKey, onSelect, onOpenNotifications, brandPlan = "pro" }: HeaderProps) {
-  const { theme, setTheme } = useTheme();
+export function Header({
+  activeKey,
+  onSelect,
+  onOpenNotifications,
+  onToggleAssistant,
+  assistantOpen,
+  brandPlan = "pro",
+}: HeaderProps) {
+  const { theme, setTheme, density, setDensity } = useTheme();
   const { locale, setLocale } = useLocale();
+  const [fontSize, setFontSize] = useState<PrefFontSize>("default");
+  useEffect(() => setFontSize(getFontSize()), []);
   const tb = useTranslations("brand");
   const th = useTranslations("header");
   const tboard = useTranslations("board");
@@ -97,6 +151,17 @@ export function Header({ activeKey, onSelect, onOpenNotifications, brandPlan = "
       </label>
 
       <div className="vxh-actions">
+        {onToggleAssistant && (
+          <button
+            className={"vxh-agent" + (assistantOpen ? " is-active" : "")}
+            aria-label={th("assistant")}
+            aria-pressed={assistantOpen}
+            onClick={onToggleAssistant}
+          >
+            <PIcon name="sparkle" weight="fill" />
+          </button>
+        )}
+
         <div className="vxh-group" role="group" aria-label={th("systemActions")}>
           <button className="vxh-icon" aria-label={th("help")}>
             <PIcon name="question" />
@@ -167,38 +232,56 @@ export function Header({ activeKey, onSelect, onOpenNotifications, brandPlan = "
 
               <div className="vxh-divider-row" />
 
-              <div className="vxh-acct-row" role="group" aria-label={th("theme")}>
-                <PIcon name="sun" />
-                <span>{th("theme")}</span>
-                <span style={{ marginLeft: "auto", display: "inline-flex", gap: 4 }}>
-                  {THEME_OPTIONS.map((opt) => (
-                    <button
-                      key={opt}
-                      className={"pill" + (theme === opt ? " is-on" : "")}
-                      onClick={() => {
-                        setTheme(opt);
-                        persistTheme(opt as PrefTheme);
-                      }}
-                    >
-                      {th("theme_" + opt)}
-                    </button>
-                  ))}
-                </span>
-              </div>
-              <div className="vxh-acct-row">
-                <PIcon name="globe" />
-                <span>{th("language")}</span>
-                <select
-                  style={{ marginLeft: "auto" }}
-                  value={locale}
-                  onChange={(e) => setLocale(e.target.value as Locale)}
-                >
-                  {ARDA_LOCALE_OPTIONS.map((o) => (
-                    <option key={o.locale} value={o.locale}>
-                      {o.nativeName}
-                    </option>
-                  ))}
-                </select>
+              <div className="vxh-prefs">
+                <div className="vxh-prefs-title">{th("prefs")}</div>
+                <div className="vxh-pref-row">
+                  <PIcon className="vxh-pref-ico" name="globe" />
+                  <span className="vxh-pref-label">{th("language")}</span>
+                  <select
+                    className="vxh-pref-select"
+                    value={locale}
+                    onChange={(e) => setLocale(e.target.value as Locale)}
+                  >
+                    {ARDA_LOCALE_OPTIONS.map((o) => (
+                      <option key={o.locale} value={o.locale}>
+                        {o.nativeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <PrefSeg
+                  icon="sun"
+                  label={th("theme")}
+                  value={theme}
+                  options={THEME_OPTIONS}
+                  optionLabel={(opt) => th("theme_" + opt)}
+                  onChange={(opt) => {
+                    setTheme(opt);
+                    persistTheme(opt as PrefTheme);
+                  }}
+                />
+                <PrefSeg
+                  icon="rows"
+                  label={th("density")}
+                  value={density}
+                  options={DENSITY_OPTIONS}
+                  optionLabel={(opt) => th("density_" + opt)}
+                  onChange={(opt) => {
+                    setDensity(opt);
+                    persistDensity(opt);
+                  }}
+                />
+                <PrefSeg
+                  icon="text-aa"
+                  label={th("fontSize")}
+                  value={fontSize}
+                  options={FONTSIZE_OPTIONS}
+                  optionLabel={(opt) => th("fontSize_" + opt)}
+                  onChange={(opt) => {
+                    setFontSize(opt);
+                    persistFontSize(opt);
+                  }}
+                />
               </div>
 
               <div className="vxh-divider-row" />
