@@ -7,6 +7,7 @@ import { useTranslations } from "@arda/shared/i18n";
 import { ardaBrandCore } from "@arda/shared/brand";
 import { Header } from "./header";
 import { Sidebar } from "./sidebar";
+import { Assistant, type AssistantMode } from "./assistant";
 import { PIcon, type PIconName } from "./phosphor-icon";
 
 /** Seed notifications (static demo data for Phase 1). */
@@ -31,6 +32,21 @@ export function Shell({ children }: { children: ReactNode }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantMode, setAssistantMode] = useState<AssistantMode>("narrow");
+
+  const toggleAssistantWide = () => {
+    setAssistantMode((m) => {
+      const next = m === "wide" ? "narrow" : "wide";
+      if (next === "wide") setCollapsed(true); // wide auto-collapses the nav
+      return next;
+    });
+  };
+  const toggleAssistantFull = () => setAssistantMode((m) => (m === "full" ? "narrow" : "full"));
+  const closeAssistant = () => {
+    setAssistantOpen(false);
+    setAssistantMode("narrow");
+  };
 
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 50);
@@ -41,14 +57,19 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const activeKey = useMemo(() => (pathname ?? "/").split("/").filter(Boolean)[0] ?? "dashboard", [pathname]);
 
+  const rootClass =
+    "app-page" + (assistantOpen ? " vela-open vela-" + assistantMode : "");
+
   return (
-    <div id="arda-page-root" className="app-page">
+    <div id="arda-page-root" className={rootClass}>
       <header className={`app-header${isScrolled ? " is-scrolled" : ""}`}>
         <div className="app-header-inner">
           <Header
             activeKey={activeKey}
             onSelect={(route) => router.push(route)}
             onOpenNotifications={() => setNotifOpen(true)}
+            onToggleAssistant={() => setAssistantOpen((o) => !o)}
+            assistantOpen={assistantOpen}
           />
         </div>
       </header>
@@ -64,6 +85,15 @@ export function Shell({ children }: { children: ReactNode }) {
         </aside>
         <main className="app-main">{children}</main>
       </div>
+
+      {assistantOpen && (
+        <Assistant
+          mode={assistantMode}
+          onClose={closeAssistant}
+          onToggleWide={toggleAssistantWide}
+          onToggleFull={toggleAssistantFull}
+        />
+      )}
 
       <ShellLegalFooter
         className="app-footer"
